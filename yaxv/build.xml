@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project basedir="." default="jar">
+  <property file="../vendor/jar/vendor-jars.properties"/>
+  
+  <target name="clean">
+    <delete dir="build"/>
+  </target>
+  
+  <target name="compile">
+    <mkdir dir="build/yaxv"/>
+    <javac srcdir="src" destdir="build/yaxv" debug="true">
+      <classpath>
+        <pathelement location="../vendor/jars/${ant.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+  
+  <target name="jar" depends="compile">
+    <jar jarfile="yaxv.jar">
+      <fileset dir="build/yaxv"/>
+      <fileset dir="resources"/>
+    </jar>
+  </target>
+</project>
