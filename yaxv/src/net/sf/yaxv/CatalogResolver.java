@@ -45,7 +45,7 @@ public class CatalogResolver implements EntityResolver {
 				while ((line = in.readLine()) != null) {
 					lineNr++;
 					if (line.length() > 0 && line.charAt(0) != '#') {
-						String[] parts = line.split("|");
+						String[] parts = line.split("\\|");
 						if (parts.length != 3) {
 							throw new CatalogResolverException("Invalid catalog resource format (line " + lineNr + ")");
 						}
@@ -82,25 +82,7 @@ public class CatalogResolver implements EntityResolver {
 	}
 
 	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-		Entry entry = null;
-		if (publicId != null) {
-			entry = (Entry)entriesByPublicId.get(publicId);
-			if (entry == null) {
-				return null;
-			}
-		}
-		if (systemId != null) {
-			if (entry == null) {
-				entry = (Entry)entriesBySystemId.get(systemId);
-				if (entry == null) {
-					return null;
-				}
-			} else {
-				if (!entry.getSystemId().equals(systemId)) {
-					throw new SAXException("System ID of external entity does not match its public ID");
-				}
-			}
-		}
-		return new InputSource(CatalogResolver.class.getResourceAsStream(entry.getResource()));
+		Entry entry = publicId != null ? (Entry)entriesByPublicId.get(publicId) : (Entry)entriesBySystemId.get(systemId);
+		return entry == null ? null : new InputSource(CatalogResolver.class.getResourceAsStream(entry.getResource()));
 	}
 }
