@@ -10,7 +10,8 @@
     <mkdir dir="build/yaxv"/>
     <javac srcdir="src" destdir="build/yaxv" debug="true">
       <classpath>
-        <pathelement location="../vendor/jars/${ant.jar}"/>
+        <pathelement location="../../vendor/jars/${ant.jar}"/>
+        <pathelement location="../../vendor/inetlib/inetlib-1.1.1.jar"/>
       </classpath>
     </javac>
   </target>

@@ -1,0 +1,12 @@
+base:href
+link:href
+script:src
+blockquote:cite
+ins:cite
+del:cite
+a:href
+q:cite
+img:src
+img:longdesc
+area:href
+input:src

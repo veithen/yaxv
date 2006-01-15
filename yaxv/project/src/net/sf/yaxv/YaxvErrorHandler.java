@@ -6,32 +6,25 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 public class YaxvErrorHandler implements ErrorHandler {
-	private final Task task;
-	private final String file;
-	private int errorCount;
+	private final ErrorListener errorListener;
 	
-	public YaxvErrorHandler(Task task, String file) {
-		this.task = task;
-		this.file = file;
+	public YaxvErrorHandler(ErrorListener errorListener) {
+		this.errorListener = errorListener;
 	}
 	
-	private void log(String tag, SAXParseException ex) {
-		task.log("[" + tag + "] " + file + ":" + ex.getLineNumber() + ":" + ex.getColumnNumber() + " " + ex.getMessage());
+	private void log(int level, SAXParseException ex) {
+		errorListener.log(level, ex.getLineNumber(), ex.getColumnNumber(), ex.getMessage());
 	}
 	
 	public void warning(SAXParseException ex) throws SAXException {
-		log("warning", ex);
+		log(ErrorListener.WARNING, ex);
 	}
 
 	public void error(SAXParseException ex) throws SAXException {
-		log("error", ex);
-		errorCount++;
+		log(ErrorListener.ERROR, ex);
 	}
 
 	public void fatalError(SAXParseException ex) throws SAXException {
-		log("fatal", ex);
-		errorCount++;
+		log(ErrorListener.FATAL, ex);
 	}
-	
-	public int getErrorCount() { return errorCount; }
 }
