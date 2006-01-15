@@ -16,6 +16,29 @@
     </javac>
   </target>
   
+  <target name="compile-test" depends="compile">
+    <mkdir dir="build/test"/>
+    <javac srcdir="test" destdir="build/test" debug="true">
+      <classpath>
+        <pathelement location="../../vendor/jars/${junit.jar}"/>
+	<pathelement location="build/yaxv"/>
+      </classpath>
+    </javac>
+  </target>
+  
+  <target name="test" depends="compile-test">
+    <junit>
+      <batchtest haltonfailure="false">
+        <fileset dir="build/test"><include name="**/*Test.class"/></fileset>
+      </batchtest>
+      <formatter type="plain" usefile="false"/>
+      <classpath>
+        <pathelement location="build/test"/>
+        <pathelement location="build/yaxv"/>
+      </classpath>
+    </junit>
+  </target>
+  
   <target name="jar" depends="compile">
     <jar jarfile="yaxv.jar">
       <fileset dir="build/yaxv"/>
