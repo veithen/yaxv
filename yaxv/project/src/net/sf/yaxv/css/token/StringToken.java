@@ -1,4 +1,6 @@
-package net.sf.yaxv.css;
+package net.sf.yaxv.css.token;
+
+import net.sf.yaxv.css.Token;
 
 public class StringToken extends Token {
 	private final String content;

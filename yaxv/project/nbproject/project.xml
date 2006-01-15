@@ -71,7 +71,7 @@
             <compilation-unit>
                 <package-root>test</package-root>
                 <unit-tests/>
-                <classpath mode="compile">src:../../vendor/jar/junit-3.8.1.jar</classpath>
+                <classpath mode="compile">src:../../vendor/jar/junit-3.8.1.jar:build/yaxv</classpath>
                 <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>

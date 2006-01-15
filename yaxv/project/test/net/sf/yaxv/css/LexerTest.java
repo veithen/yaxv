@@ -3,6 +3,11 @@ package net.sf.yaxv.css;
 import java.io.IOException;
 import java.io.StringReader;
 import junit.framework.TestCase;
+import net.sf.yaxv.css.token.AtKeyword;
+import net.sf.yaxv.css.token.Dot;
+import net.sf.yaxv.css.token.Identifier;
+import net.sf.yaxv.css.token.NumberToken;
+import net.sf.yaxv.css.token.StringToken;
 
 public class LexerTest extends TestCase {
 	private Lexer createLexer(String css) {

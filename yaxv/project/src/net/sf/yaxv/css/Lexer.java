@@ -1,6 +1,26 @@
 package net.sf.yaxv.css;
 
 import java.io.IOException;
+import net.sf.yaxv.css.selector.RBrace;
+import net.sf.yaxv.css.token.Asterisk;
+import net.sf.yaxv.css.token.AtKeyword;
+import net.sf.yaxv.css.token.CDC;
+import net.sf.yaxv.css.token.CDO;
+import net.sf.yaxv.css.token.ChildOf;
+import net.sf.yaxv.css.token.Colon;
+import net.sf.yaxv.css.token.Comma;
+import net.sf.yaxv.css.token.Dimension;
+import net.sf.yaxv.css.token.EOF;
+import net.sf.yaxv.css.token.Hash;
+import net.sf.yaxv.css.token.Identifier;
+import net.sf.yaxv.css.token.LBrace;
+import net.sf.yaxv.css.token.LBracket;
+import net.sf.yaxv.css.token.NumberToken;
+import net.sf.yaxv.css.token.Percentage;
+import net.sf.yaxv.css.token.Plus;
+import net.sf.yaxv.css.token.Semicolon;
+import net.sf.yaxv.css.token.Space;
+import net.sf.yaxv.css.token.StringToken;
 
 public class Lexer {
 	private final StreamConsumer in;
@@ -12,14 +32,21 @@ public class Lexer {
 	public Token readToken() throws IOException, CSSParserException {
 		int nextChar = in.nextChar();
 		if (is_nmstart(nextChar)) {
-			return new Identifier(readIdent());
+			return new Identifier(readIdentOrName());
 		} else if (nextChar == '@') {
 			in.consume();
-			String ident = readIdent();
-			if (ident.length() == 0) {
+			if (is_nmstart(in.nextChar())) {
+				return new AtKeyword(readIdentOrName());
+			} else {
 				throw new CSSParserException("Identifier expected after @");
 			}
-			return new AtKeyword(ident);
+		} else if (nextChar == '#') { 
+			in.consume();
+			if (is_nmchar(in.nextChar())) {
+				return new Hash(readIdentOrName());
+			} else {
+				throw new CSSParserException("Name expected after #");
+			}
 		} else if (nextChar == '"' || nextChar == '\'') { 
 			return readString();
 		} else if (('0' <= nextChar && nextChar <= '9') || nextChar == '.') { 
@@ -29,13 +56,71 @@ public class Lexer {
 				in.consume();
 				return new Percentage(num);
 			} else if (is_nmstart(nextChar)) {
-				return new Dimension(num, readIdent());
+				return new Dimension(num, readIdentOrName());
 			} else {
 				return new NumberToken(num);
 			}
+		} else if (is_w(nextChar)) {
+			do {
+				in.consume();
+			} while (is_w(in.nextChar()));
+			return new Space();
+		} else if (nextChar == ';') {
+			in.consume();
+			return new Semicolon();
+		} else if (nextChar == ':') {
+			in.consume();
+			return new Colon();
+		} else if (nextChar == ',') {
+			in.consume();
+			return new Comma();
+		} else if (nextChar == '[') {
+			in.consume();
+			return new LBracket();
+		} else if (nextChar == '{') {
+			in.consume();
+			return new LBrace();
+		} else if (nextChar == '}') {
+			in.consume();
+			return new RBrace();
+		} else if (nextChar == '+') {
+			in.consume();
+			return new Plus();
+		} else if (nextChar == '>') {
+			in.consume();
+			return new ChildOf();
+		} else if (nextChar == '<') {
+			in.consume();
+			expectChar('!');
+			expectChar('-');
+			expectChar('-');
+			return new CDO();
+		} else if (nextChar == '-') {
+			in.consume();
+			expectChar('-');
+			expectChar('>');
+			return new CDC();
+		} else if (nextChar == '*') {
+			in.consume();
+			return new Asterisk();
+		} else if (nextChar == -1) {
+			return new EOF();
 		} else {
 			throw new CSSParserException("Unexpected character");
 		}
+	}
+	
+	private void expectChar(int c) throws IOException, CSSParserException {
+		int nextChar = in.nextChar();
+		if (nextChar == c) {
+			in.consume();
+		} else {
+			throw new CSSParserException("Unexpected character");
+		}
+	}
+	
+	private boolean is_w(int c) {
+		return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f';
 	}
 	
 	private boolean is_nonascii(int c) { return c > 0177; }
@@ -44,14 +129,15 @@ public class Lexer {
 		return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || is_nonascii(c) || c == '\\';
 	}
 	
-	private String readIdent() throws IOException, CSSParserException {
+	private boolean is_nmchar(int c) {
+		return is_nmstart(c) || ('0' <= c && c <= '9') || c == '-';
+	}
+	
+	private String readIdentOrName() throws IOException, CSSParserException {
 		StringBuffer buff = new StringBuffer();
 		while (true) {
 			int nextChar = in.nextChar();
-			if (('a' <= nextChar && nextChar <= 'z')
-				   || ('A' <= nextChar && nextChar <= 'Z')
-				   || ('0' <= nextChar && nextChar <= '9')
-				   || nextChar == '-' || is_nonascii(nextChar)) {
+			if (is_nmchar(nextChar)) {
 				buff.append((char)nextChar);
 				in.consume();
 			} else if (nextChar == '\\') {
@@ -76,7 +162,7 @@ public class Lexer {
 					nibble = nextChar - 'a' + 10;
 				} else if ('A' <= nextChar && nextChar <= 'Z') {
 					nibble = nextChar - 'A' + 10;
-				} else if (nextChar == ' ' || nextChar == '\n' || nextChar == '\r' || nextChar == '\t' || nextChar == '\f') {
+				} else if (is_w(nextChar)) {
 					in.consume();
 					break;
 				} else {
