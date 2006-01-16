@@ -23,6 +23,7 @@ import net.sf.yaxv.css.token.RBrace;
 import net.sf.yaxv.css.token.Semicolon;
 import net.sf.yaxv.css.token.Space;
 import net.sf.yaxv.css.token.StringToken;
+import net.sf.yaxv.css.token.URLToken;
 
 public class Lexer {
 	private final StreamConsumer in;
@@ -58,7 +59,41 @@ public class Lexer {
 			}
 		}
 		if (is_nmstart(nextChar)) {
-			return new Identifier(line, column, readIdentOrName());
+			String identifier = readIdentOrName();
+			if (identifier.equals("url") && in.nextChar() == '(') {
+				in.consume();
+				String url;
+				while (is_w(in.nextChar())) {
+					in.consume();
+				}
+				if (isQuote(in.nextChar())) {
+					url = readString();
+				} else {
+					StringBuffer buff = new StringBuffer();
+					while (true) {
+						nextChar = in.nextChar();
+						if (nextChar == -1) {
+							throw new CSSParserException(line, column, "css.unterminated.url");
+						} else if (nextChar == '\\') {
+							in.consume();
+							buff.append(readUnicodeOrEscapeSequence());
+						} else if (nextChar == '!' || nextChar == '#' || nextChar == '$' || nextChar == '%' || nextChar == '&' || ('*' <= nextChar && nextChar <= '~') || is_nonascii(nextChar)) {
+							in.consume();
+							buff.append((char)nextChar);
+						} else {
+							break;
+						}
+					}
+					url = buff.toString();
+				}
+				while (is_w(in.nextChar())) {
+					in.consume();
+				}
+				expectChar(')');
+				return new URLToken(line, column, url);
+			} else {
+				return new Identifier(line, column, identifier);
+			}
 		} else if (nextChar == '@') {
 			in.consume();
 			if (is_nmstart(in.nextChar())) {
@@ -73,7 +108,7 @@ public class Lexer {
 			} else {
 				throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "Name expected after #");
 			}
-		} else if (nextChar == '"' || nextChar == '\'') { 
+		} else if (isQuote(nextChar)) { 
 			return new StringToken(line, column, readString());
 		} else if (('0' <= nextChar && nextChar <= '9') || nextChar == '.') {
 			StringBuffer buff;
@@ -186,6 +221,10 @@ public class Lexer {
 	
 	private boolean is_nmchar(int c) {
 		return is_nmstart(c) || ('0' <= c && c <= '9') || c == '-';
+	}
+	
+	private boolean isQuote(int c) {
+		return c == '"' || c == '\'';
 	}
 	
 	private String readIdentOrName() throws IOException, CSSParserException {
