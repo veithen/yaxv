@@ -11,6 +11,7 @@ import net.sf.yaxv.css.selector.ChildSelector;
 import net.sf.yaxv.css.selector.ClassSelector;
 import net.sf.yaxv.css.selector.DescendantSelector;
 import net.sf.yaxv.css.selector.IdSelector;
+import net.sf.yaxv.css.selector.PseudoClassSelector;
 import net.sf.yaxv.css.selector.SimpleSelector;
 import net.sf.yaxv.css.selector.SimpleSelectorComponent;
 import net.sf.yaxv.css.selector.TypeSelector;
@@ -24,6 +25,7 @@ import net.sf.yaxv.css.token.Colon;
 import net.sf.yaxv.css.token.Comma;
 import net.sf.yaxv.css.token.Dot;
 import net.sf.yaxv.css.token.EOF;
+import net.sf.yaxv.css.token.Function;
 import net.sf.yaxv.css.token.Hash;
 import net.sf.yaxv.css.token.Identifier;
 import net.sf.yaxv.css.token.LBrace;
@@ -85,19 +87,19 @@ public class Parser {
 	}
 	
 	private void parseImport(TokenConsumer in) throws IOException, CSSParserException {
-		
+		throw new UnsupportedOperationException();
 	}
 	
 	private void parseMedia(TokenConsumer in) throws IOException, CSSParserException {
-		
+		throw new UnsupportedOperationException();
 	}
 	
 	private void parsePage(TokenConsumer in) throws IOException, CSSParserException {
-		
+		throw new UnsupportedOperationException();
 	}
 	
 	private void parseFontFace(TokenConsumer in) throws IOException, CSSParserException {
-		
+		throw new UnsupportedOperationException();
 	}
 	
 	private Ruleset parseRuleset(TokenConsumer in) throws IOException, CSSParserException {
@@ -111,10 +113,37 @@ public class Parser {
 		}
 		expectToken(in, LBrace.class);
 		
+		ruleset: while (true) {
+			consumeSpace(in);
+			String property = expectIdentifier(in);
+			consumeSpace(in);
+			expectToken(in, Colon.class);
+			while (true) {
+				nextToken = in.nextToken();
+				if (nextToken instanceof RBrace) {
+					in.consume();
+					break ruleset;
+				} else if (nextToken instanceof Semicolon) {
+					in.consume();
+					break;
+				} else {
+					in.consume();
+				}
+			}
+			consumeSpace(in);
+			nextToken = in.nextToken();
+			if (nextToken instanceof RBrace) {
+				in.consume();
+				// TODO: call some event listener here
+				System.out.println(nextToken.getLineNumber() + ":" + nextToken.getColumnNumber() + " CSS forbids semicolon (';') at end of ruleset (immediatly before the closing brace)");
+				break;
+			}
+		}
+		
 		// Skip the definition of the ruleset
-		do {
+/*		do {
 			nextToken = in.consume();
-		} while (!(nextToken instanceof RBrace));
+		} while (!(nextToken instanceof RBrace)); */
 		
 		return new Ruleset((Selector[])selectors.toArray(new Selector[selectors.size()]));
 	}
@@ -178,8 +207,18 @@ public class Parser {
 				components.add(new ClassSelector(expectIdentifier(in)));
 			} else if (nextToken instanceof LBracket) {
 				// TODO: attribute selector
+				throw new UnsupportedOperationException();
 			} else if (nextToken instanceof Colon) {
-				// TODO: pseudo class selector
+				in.consume();
+				nextToken = in.nextToken();
+				if (nextToken instanceof Identifier) {
+					in.consume();
+					components.add(new PseudoClassSelector(0)); // TODO: choose type from identifier
+				} else if (nextToken instanceof Function) {
+					throw new UnsupportedOperationException("Pseudo class selector with function");
+				} else {
+					throw new UnexpectedTokenException(nextToken);
+				}
 			} else {
 				break;
 			}

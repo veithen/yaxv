@@ -25,6 +25,9 @@ public class StreamConsumer {
 		if (nextChar == -2) {
 			throw new IllegalStateException("Cannot consume a char that has not yet been read");
 		}
+		if (nextChar == -1) {
+			throw new IllegalStateException("Consuming EOF character");
+		}
 		if (nextChar == '\n' || (lastChar == '\r' && nextChar == '\f')) {
 			line++;
 			column = 1;
