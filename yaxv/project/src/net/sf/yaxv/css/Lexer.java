@@ -1,7 +1,6 @@
 package net.sf.yaxv.css;
 
 import java.io.IOException;
-import net.sf.yaxv.css.selector.RBrace;
 import net.sf.yaxv.css.token.Asterisk;
 import net.sf.yaxv.css.token.AtKeyword;
 import net.sf.yaxv.css.token.CDC;
@@ -10,14 +9,17 @@ import net.sf.yaxv.css.token.ChildOf;
 import net.sf.yaxv.css.token.Colon;
 import net.sf.yaxv.css.token.Comma;
 import net.sf.yaxv.css.token.Dimension;
+import net.sf.yaxv.css.token.Dot;
 import net.sf.yaxv.css.token.EOF;
 import net.sf.yaxv.css.token.Hash;
 import net.sf.yaxv.css.token.Identifier;
 import net.sf.yaxv.css.token.LBrace;
 import net.sf.yaxv.css.token.LBracket;
+import net.sf.yaxv.css.token.Minus;
 import net.sf.yaxv.css.token.NumberToken;
 import net.sf.yaxv.css.token.Percentage;
 import net.sf.yaxv.css.token.Plus;
+import net.sf.yaxv.css.token.RBrace;
 import net.sf.yaxv.css.token.Semicolon;
 import net.sf.yaxv.css.token.Space;
 import net.sf.yaxv.css.token.StringToken;
@@ -30,83 +32,136 @@ public class Lexer {
 	}
 	
 	public Token readToken() throws IOException, CSSParserException {
-		int nextChar = in.nextChar();
+		// Save the line and column number of the start of the token to be read; these
+		// will be used when the token instance is created.
+		// Note that for exceptions, we will usually use in.getLineNumber() and in.getColumnNumber().
+		int line = in.getLineNumber();
+		int column = in.getColumnNumber();
+		
+		int nextChar;
+		while ((nextChar = in.nextChar()) == '/') {
+			in.consume();
+			expectChar('*');
+			while (true) {
+				nextChar = in.nextChar();
+				if (nextChar == -1) {
+					throw new CSSParserException(line, column, "css.unterminated.comment");
+				} else if (nextChar == '*') {
+					in.consume();
+					if (in.nextChar() == '/') {
+						in.consume();
+						break;
+					}
+				} else {
+					in.consume();
+				}
+			}
+		}
 		if (is_nmstart(nextChar)) {
-			return new Identifier(readIdentOrName());
+			return new Identifier(line, column, readIdentOrName());
 		} else if (nextChar == '@') {
 			in.consume();
 			if (is_nmstart(in.nextChar())) {
-				return new AtKeyword(readIdentOrName());
+				return new AtKeyword(line, column, readIdentOrName());
 			} else {
-				throw new CSSParserException("Identifier expected after @");
+				throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "Identifier expected after @");
 			}
 		} else if (nextChar == '#') { 
 			in.consume();
 			if (is_nmchar(in.nextChar())) {
-				return new Hash(readIdentOrName());
+				return new Hash(line, column, readIdentOrName());
 			} else {
-				throw new CSSParserException("Name expected after #");
+				throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "Name expected after #");
 			}
 		} else if (nextChar == '"' || nextChar == '\'') { 
-			return readString();
-		} else if (('0' <= nextChar && nextChar <= '9') || nextChar == '.') { 
-			String num = readNum();
+			return new StringToken(line, column, readString());
+		} else if (('0' <= nextChar && nextChar <= '9') || nextChar == '.') {
+			StringBuffer buff;
+			boolean dot;
+			if (nextChar == '.') {
+				in.consume();
+				nextChar = in.nextChar();
+				if ('0' <= nextChar && nextChar <= '9') {
+					buff = new StringBuffer(".");
+					dot = true;
+				} else {
+					return new Dot(line, column);
+				}
+			} else {
+				buff = new StringBuffer();
+				dot = false;
+			}
+			while (true) {
+				nextChar = in.nextChar();
+				if (('0' <= nextChar && nextChar <= '9') || (!dot && nextChar == '.')) {
+					in.consume();
+					buff.append((char)nextChar);
+				} else {
+					break;
+				}
+			}
+			if (buff.charAt(buff.length()-1) == '.') {
+				throw new CSSParserException(line, column, "css.unterminated.decimal");
+			}
 			nextChar = in.nextChar();
 			if (nextChar == '%') {
 				in.consume();
-				return new Percentage(num);
+				return new Percentage(line, column, buff.toString());
 			} else if (is_nmstart(nextChar)) {
-				return new Dimension(num, readIdentOrName());
+				return new Dimension(line, column, buff.toString(), readIdentOrName());
 			} else {
-				return new NumberToken(num);
+				return new NumberToken(line, column, buff.toString());
 			}
 		} else if (is_w(nextChar)) {
 			do {
 				in.consume();
 			} while (is_w(in.nextChar()));
-			return new Space();
+			return new Space(line, column);
 		} else if (nextChar == ';') {
 			in.consume();
-			return new Semicolon();
+			return new Semicolon(line, column);
 		} else if (nextChar == ':') {
 			in.consume();
-			return new Colon();
+			return new Colon(line, column);
 		} else if (nextChar == ',') {
 			in.consume();
-			return new Comma();
+			return new Comma(line, column);
 		} else if (nextChar == '[') {
 			in.consume();
-			return new LBracket();
+			return new LBracket(line, column);
 		} else if (nextChar == '{') {
 			in.consume();
-			return new LBrace();
+			return new LBrace(line, column);
 		} else if (nextChar == '}') {
 			in.consume();
-			return new RBrace();
+			return new RBrace(line, column);
 		} else if (nextChar == '+') {
 			in.consume();
-			return new Plus();
+			return new Plus(line, column);
+		} else if (nextChar == '-') {
+			in.consume();
+			return new Minus(line, column);
 		} else if (nextChar == '>') {
 			in.consume();
-			return new ChildOf();
+			return new ChildOf(line, column);
 		} else if (nextChar == '<') {
 			in.consume();
 			expectChar('!');
 			expectChar('-');
 			expectChar('-');
-			return new CDO();
+			return new CDO(line, column);
 		} else if (nextChar == '-') {
 			in.consume();
 			expectChar('-');
 			expectChar('>');
-			return new CDC();
+			return new CDC(line, column);
 		} else if (nextChar == '*') {
 			in.consume();
-			return new Asterisk();
+			return new Asterisk(line, column);
 		} else if (nextChar == -1) {
-			return new EOF();
+			return new EOF(line, column);
 		} else {
-			throw new CSSParserException("Unexpected character");
+			throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "css.unexpected.char");
 		}
 	}
 	
@@ -115,7 +170,7 @@ public class Lexer {
 		if (nextChar == c) {
 			in.consume();
 		} else {
-			throw new CSSParserException("Unexpected character");
+			throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "css.unexpected.char");
 		}
 	}
 	
@@ -137,12 +192,12 @@ public class Lexer {
 		StringBuffer buff = new StringBuffer();
 		while (true) {
 			int nextChar = in.nextChar();
-			if (is_nmchar(nextChar)) {
-				buff.append((char)nextChar);
-				in.consume();
-			} else if (nextChar == '\\') {
+			if (nextChar == '\\') {
 				in.consume();
 				buff.append(readUnicodeOrEscapeSequence());
+			} else if (is_nmchar(nextChar)) {
+				buff.append((char)nextChar);
+				in.consume();
 			} else {
 				return buff.toString();
 			}
@@ -179,13 +234,14 @@ public class Lexer {
 			in.consume();
 			return (char)nextChar;
 		} else {
-			throw new CSSParserException("Invalid escape char");
+			throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "Invalid escape char");
 		}
 	}
 	
-	private StringToken readString() throws IOException, CSSParserException {
+	private String readString() throws IOException, CSSParserException {
 		StringBuffer buff = new StringBuffer();
-		boolean doubleQuoted = in.consume() == '"';
+		boolean doubleQuoted = in.nextChar() == '"';
+		in.consume();
 		while (true) {
 			int nextChar = in.nextChar();
 			if (nextChar == '\\') {
@@ -201,7 +257,7 @@ public class Lexer {
 						in.consume();
 						buff.append('\n');
 					} else {
-						throw new CSSParserException("Invalid newline in escape sequence");
+						throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "Invalid newline in escape sequence");
 					}
 				} else {
 					buff.append(readUnicodeOrEscapeSequence());
@@ -213,25 +269,11 @@ public class Lexer {
 				buff.append((char)nextChar);
 			} else if (nextChar == '"' || nextChar == '\'') {
 				in.consume();
-				return new StringToken(buff.toString());
-			} else if (nextChar == -1) {
-				throw new CSSParserException("Unterminated string literal");
-			} else {
-				throw new CSSParserException("Unexpected character (code " + nextChar + ") in string literal");
-			}
-		}
-	}
-	
-	private String readNum() throws IOException, CSSParserException {
-		StringBuffer buff = new StringBuffer();
-		boolean dot = false;
-		while (true) {
-			int nextChar = in.nextChar();
-			if (('0' <= nextChar && nextChar <= '9') || (!dot && nextChar == '.')) {
-				in.consume();
-				buff.append((char)nextChar);
-			} else {
 				return buff.toString();
+			} else if (nextChar == -1) {
+				throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "Unterminated string literal");
+			} else {
+				throw new CSSParserException(in.getLineNumber(), in.getColumnNumber(), "Unexpected character (code " + nextChar + ") in string literal");
 			}
 		}
 	}

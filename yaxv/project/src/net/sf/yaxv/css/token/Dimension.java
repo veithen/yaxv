@@ -6,7 +6,8 @@ public class Dimension extends Token {
 	private final String value;
 	private final String unit;
 	
-	public Dimension(String value, String unit) {
+	public Dimension(int line, int column, String value, String unit) {
+		super(line, column);
 		this.value = value;
 		this.unit = unit;
 	}

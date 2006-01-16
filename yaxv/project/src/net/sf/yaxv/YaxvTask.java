@@ -122,7 +122,7 @@ public class YaxvTask extends Task {
 			String[] files = fileSet.getDirectoryScanner(project).getIncludedFiles();
 			for (int i=0; i<files.length; i++) {
 				String fileName = files[i];
-				File file = new File(dir, files[i]);
+				File file = new File(dir, fileName);
 				ErrorListener errorListener = new ErrorListener(this, fileName);
 				try {
 					xmlReader.setErrorHandler(new YaxvErrorHandler(errorListener));

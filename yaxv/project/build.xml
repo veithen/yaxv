@@ -35,6 +35,7 @@
       <classpath>
         <pathelement location="build/test"/>
         <pathelement location="build/yaxv"/>
+        <pathelement location="resources"/>
       </classpath>
     </junit>
   </target>

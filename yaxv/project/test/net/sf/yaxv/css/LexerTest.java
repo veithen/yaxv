@@ -5,6 +5,7 @@ import java.io.StringReader;
 import junit.framework.TestCase;
 import net.sf.yaxv.css.token.AtKeyword;
 import net.sf.yaxv.css.token.Dot;
+import net.sf.yaxv.css.token.EOF;
 import net.sf.yaxv.css.token.Identifier;
 import net.sf.yaxv.css.token.NumberToken;
 import net.sf.yaxv.css.token.StringToken;
@@ -26,6 +27,22 @@ public class LexerTest extends TestCase {
 		catch (CSSParserException ex) {
 			// OK
 		}
+	}
+	
+	private void testToken(String css, Class tokenClass) throws IOException, CSSParserException {
+		assertEquals(tokenClass, parseToken(css).getClass());
+	}
+	
+	public void testEOF() throws IOException, CSSParserException {
+		testToken("", EOF.class);
+	}
+	
+	public void testCommentBasic() throws IOException, CSSParserException {
+		testToken("/* test */", EOF.class);
+	}
+	
+	public void testCommentWithAsterisksAndSlashes() throws IOException, CSSParserException {
+		testToken("/* * test /* test / */", EOF.class);
 	}
 	
 	private void testIdentifier(String css, String identifier) throws IOException, CSSParserException {
@@ -105,6 +122,6 @@ public class LexerTest extends TestCase {
 	}
 	
 	public void testDot() throws IOException, CSSParserException {
-		assertTrue(parseToken(".") instanceof Dot);
+		testToken(".", Dot.class);
 	}
 }

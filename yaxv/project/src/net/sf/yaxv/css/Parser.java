@@ -1,6 +1,8 @@
 package net.sf.yaxv.css;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 import net.sf.yaxv.css.selector.AdjacentSelector;
@@ -9,7 +11,6 @@ import net.sf.yaxv.css.selector.ChildSelector;
 import net.sf.yaxv.css.selector.ClassSelector;
 import net.sf.yaxv.css.selector.DescendantSelector;
 import net.sf.yaxv.css.selector.IdSelector;
-import net.sf.yaxv.css.selector.RBrace;
 import net.sf.yaxv.css.selector.SimpleSelector;
 import net.sf.yaxv.css.selector.SimpleSelectorComponent;
 import net.sf.yaxv.css.selector.TypeSelector;
@@ -28,11 +29,16 @@ import net.sf.yaxv.css.token.Identifier;
 import net.sf.yaxv.css.token.LBrace;
 import net.sf.yaxv.css.token.LBracket;
 import net.sf.yaxv.css.token.Plus;
+import net.sf.yaxv.css.token.RBrace;
 import net.sf.yaxv.css.token.Semicolon;
 import net.sf.yaxv.css.token.Space;
 import net.sf.yaxv.css.token.StringToken;
 
 public class Parser {
+	public Stylesheet parseStylesheet(InputStream in) throws IOException, CSSParserException {
+		// TODO: simply using InputStreamReader with the platform default charset is of course not correct...
+		return parseStylesheet(new TokenConsumer(new Lexer(new StreamConsumer(new InputStreamReader(in)))));
+	}
 	
 	public Stylesheet parseStylesheet(TokenConsumer in) throws IOException, CSSParserException {
 		Token nextToken = in.nextToken();

@@ -5,7 +5,8 @@ import net.sf.yaxv.css.Token;
 public class Hash extends Token {
 	private final String name;
 	
-	public Hash(String name) {
+	public Hash(int line, int column, String name) {
+		super(line, column);
 		this.name = name;
 	}
 	

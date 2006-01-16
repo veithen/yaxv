@@ -1,22 +1,14 @@
-/*
- * Token.java
- *
- * Created on January 15, 2006, 1:25 AM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package net.sf.yaxv.css;
 
-/**
- *
- * @author veithen
- */
 public class Token {
+	private final int line;
+	private final int column;
 	
-	/** Creates a new instance of Token */
-	public Token() {
+	public Token(int line, int column) {
+		this.line = line;
+		this.column = column;
 	}
 	
+	public int getLineNumber() { return line; }
+	public int getColumnNumber() { return column; }
 }
