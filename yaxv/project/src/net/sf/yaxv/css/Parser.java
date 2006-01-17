@@ -37,6 +37,47 @@ import net.sf.yaxv.css.token.Space;
 import net.sf.yaxv.css.token.StringToken;
 
 public class Parser {
+	private final static ParserEventListener DEFAULT_LISTENER = new DefaultParserEventListener();
+	
+	private ParserEventListener listener = DEFAULT_LISTENER;
+	
+	public void setEventListener(ParserEventListener listener) {
+		this.listener = listener == null ? DEFAULT_LISTENER : listener;
+	}
+	
+	public ParserEventListener getEventListener() {
+		return listener == DEFAULT_LISTENER ? null : listener;
+	}
+	
+	private void event(int level, Token token, String key) throws CSSParserException {
+		int line = token.getLineNumber();
+		int column = token.getColumnNumber();
+		if (listener.event(level, line, column, key) == ParserEventListener.ACTION_STOP || level == ParserEventListener.LEVEL_FATAL_ERROR) {
+			throw new CSSParserException(line, column, key);
+		}
+	}
+	
+	private void event(Token token, String key) throws CSSParserException {
+		event(ParserEventListener.LEVEL_EVENT, token, key);
+	}
+	
+	private void error(Token token, String key) throws CSSParserException {
+		event(ParserEventListener.LEVEL_ERROR, token, key);
+	}
+	
+	private void fatalError(Token token, String key) throws CSSParserException {
+		event(ParserEventListener.LEVEL_FATAL_ERROR, token, key);
+	}
+	
+	private String getUnexpectedTokenKey(Class tokenClass) {
+		String name = tokenClass.getName();
+		return "css.unexpected." + name.substring(name.lastIndexOf('.')+1).toLowerCase();
+	}
+	
+	private void fatalUnexpectedToken(Token token) throws CSSParserException {
+		fatalError(token, getUnexpectedTokenKey(token.getClass()));
+	}
+	
 	public Stylesheet parseStylesheet(InputStream in) throws IOException, CSSParserException {
 		// TODO: simply using InputStreamReader with the platform default charset is of course not correct...
 		return parseStylesheet(new TokenConsumer(new Lexer(new StreamConsumer(new InputStreamReader(in)))));
@@ -134,16 +175,10 @@ public class Parser {
 			nextToken = in.nextToken();
 			if (nextToken instanceof RBrace) {
 				in.consume();
-				// TODO: call some event listener here
-				System.out.println(nextToken.getLineNumber() + ":" + nextToken.getColumnNumber() + " CSS forbids semicolon (';') at end of ruleset (immediatly before the closing brace)");
+				error(nextToken, "css.ruleset.terminated.by.semicolon");
 				break;
 			}
 		}
-		
-		// Skip the definition of the ruleset
-/*		do {
-			nextToken = in.consume();
-		} while (!(nextToken instanceof RBrace)); */
 		
 		return new Ruleset((Selector[])selectors.toArray(new Selector[selectors.size()]));
 	}
