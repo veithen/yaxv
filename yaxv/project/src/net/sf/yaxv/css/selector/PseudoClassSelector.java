@@ -1,5 +1,7 @@
 package net.sf.yaxv.css.selector;
 
+import net.sf.yaxv.css.CSSContext;
+
 public class PseudoClassSelector extends SimpleSelectorComponent {
 	public final static int FIRST_CHILD = 1;
 	public final static int LINK = 2;
@@ -12,5 +14,13 @@ public class PseudoClassSelector extends SimpleSelectorComponent {
 	
 	public PseudoClassSelector(int type) {
 		this.type = type;
+	}
+
+	public boolean selects(CSSContext context) {
+		if (type == FIRST_CHILD) {
+			return context.getParentContext() == null;
+		} else {
+			return false;
+		}
 	}
 }

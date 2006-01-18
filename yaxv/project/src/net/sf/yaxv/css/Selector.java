@@ -1,8 +1,6 @@
 package net.sf.yaxv.css;
 
-public class Selector {
-	
-	public Selector() {
-	}
-	
+// TODO: class of interface??
+public abstract class Selector {
+	public abstract boolean selects(CSSContext context);
 }

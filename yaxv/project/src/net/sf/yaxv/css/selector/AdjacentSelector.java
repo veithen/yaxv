@@ -1,5 +1,6 @@
 package net.sf.yaxv.css.selector;
 
+import net.sf.yaxv.css.CSSContext;
 import net.sf.yaxv.css.Selector;
 
 public class AdjacentSelector extends Selector {
@@ -9,5 +10,10 @@ public class AdjacentSelector extends Selector {
 	public AdjacentSelector(Selector firstSelector, Selector secondSelector) {
 		this.firstSelector = firstSelector;
 		this.secondSelector = secondSelector;
+	}
+
+	public boolean selects(CSSContext context) {
+		CSSContext siblingContext = context.getSiblingContext();
+		return siblingContext != null && firstSelector.selects(siblingContext) && secondSelector.selects(context);
 	}
 }

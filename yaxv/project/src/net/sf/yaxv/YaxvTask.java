@@ -1,75 +1,28 @@
 package net.sf.yaxv;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+import net.sf.yaxv.css.CSSContextTracker;
+import net.sf.yaxv.css.HTMLStyleHandler;
+import net.sf.yaxv.css.Parser;
 import net.sf.yaxv.url.URLValidationEngine;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import org.xml.sax.Attributes;
-import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
 
 // TODO: check that file:// URLs do not point to files outside of the site directory
 // TODO: restrict URL protocols per tag/attribute (<img src="mailto:xxx"/> is invalid)
 // TODO: check content types (<img src="..."/> can only point to image/*)
 public class YaxvTask extends Task {
-	private static class MyContentHandler extends DefaultHandler {
-		private final URL base;
-		private final AttributeSet urlAttributes;
-		private final URLValidationEngine urlValidationEngine;
-		private final ErrorListener errorListener;
-		
-		private Locator locator;
-		
-		public MyContentHandler(URL base, AttributeSet urlAttributes, URLValidationEngine urlValidationEngine, ErrorListener errorListener) {
-			this.base = base;
-			this.urlAttributes = urlAttributes;
-			this.urlValidationEngine = urlValidationEngine;
-			this.errorListener = errorListener;
-		}
-
-		public void setDocumentLocator(Locator locator) { this.locator = locator; }
-		
-		private void log(int level, String message) {
-			errorListener.log(level, locator.getLineNumber(), locator.getColumnNumber(), message);
-		}
-		
-		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-			for (int i=0; i<attributes.getLength(); i++) {
-				if (urlAttributes.contains(localName, attributes.getLocalName(i))) {
-					try {
-						URL url = new URL(base, attributes.getValue(i));
-						String protocol = url.getProtocol();
-						if (protocol.equals("mailto")) {
-							// TODO: test this
-							// Do nothing
-						} else if (protocol.equals("file") || protocol.equals("http") || protocol.equals("https") || protocol.equals("ftp")) {
-//							System.out.println("Link to check: " + url);
-							urlValidationEngine.validate(url, errorListener);
-						} else {
-							log(ErrorListener.ERROR, "Invalid protocol in URL " + url);
-						}
-					}
-					catch (MalformedURLException ex) {
-						// TODO
-						System.out.println("Malformed URL");
-					}
-				}
-			}
-		}
-	}
-	
 	private final List filesets = new LinkedList();
 	
 	public void add(FileSet fileset) { filesets.add(fileset); }
@@ -125,8 +78,16 @@ public class YaxvTask extends Task {
 				File file = new File(dir, fileName);
 				ErrorListener errorListener = new ErrorListener(this, fileName);
 				try {
+					log("Processing file " + fileName);
+					Parser cssParser = new Parser();
+					cssParser.setEventListener(new AntParserEventListener(this, fileName));
+					ContentHandlerDispatcher contentHandler = new ContentHandlerDispatcher();
+//					contentHandler.addContentHandler(new LinkExtractor(file.toURL(), urlAttributes, urlValidationEngine, errorListener));
+					CSSContextTracker contextTracker = new CSSContextTracker();
+					contentHandler.addContentHandler(contextTracker);
+					contentHandler.addContentHandler(new HTMLStyleHandler(file.toURL(), cssParser, contextTracker));
 					xmlReader.setErrorHandler(new YaxvErrorHandler(errorListener));
-					xmlReader.setContentHandler(new MyContentHandler(file.toURL(), urlAttributes, urlValidationEngine, errorListener));
+					xmlReader.setContentHandler(contentHandler);
 					xmlReader.parse(file.getAbsolutePath());
 					errorCount += errorListener.getErrorCount();
 				}
@@ -138,6 +99,10 @@ public class YaxvTask extends Task {
 						log(fileName + ": " + ex.getMessage());
 						errorCount++;
 					}
+				}
+				catch (Throwable ex) {
+					ex.printStackTrace();
+					throw new BuildException("Unexpected exception: " + ex.getMessage());
 				}
 			}
 		}
