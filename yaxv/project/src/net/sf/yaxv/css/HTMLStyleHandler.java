@@ -5,23 +5,22 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import net.sf.yaxv.pcha.DefaultPluggableContentHandler;
+import net.sf.yaxv.pcha.PCHAContext;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
-public class HTMLStyleHandler extends DefaultHandler {
+public class HTMLStyleHandler extends DefaultPluggableContentHandler {
 	private final URL base;
 	private final Parser cssParser;
-	private final CSSContextTracker tracker;
 	private final List stylesheets = new LinkedList();
 	
-	public HTMLStyleHandler(URL base, Parser cssParser, CSSContextTracker tracker) {
+	public HTMLStyleHandler(URL base, Parser cssParser) {
 		this.base = base;
 		this.cssParser = cssParser;
-		this.tracker = tracker;
 	}
 	
-	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+	public void startElement(PCHAContext context, String uri, String localName, String qName, Attributes attributes) throws SAXException {
 		if (localName.equals("link") && "stylesheet".equals(attributes.getValue("rel")) && "text/css".equals(attributes.getValue("type"))) {
 			try {
 				URL stylesheetUrl = new URL(base, attributes.getValue("href"));
@@ -34,9 +33,10 @@ public class HTMLStyleHandler extends DefaultHandler {
 			}
 		}
 		
+		CSSContext cssContext = ((CSSContextTracker)context.getContentHandler(CSSContextTracker.class)).getContext();
 		List rulesets = new LinkedList();
 		for (Iterator it = stylesheets.iterator(); it.hasNext(); ) {
-			rulesets.addAll(Arrays.asList(((Stylesheet)it.next()).getRulesets(tracker.getContext())));
+			rulesets.addAll(Arrays.asList(((Stylesheet)it.next()).getRulesets(cssContext)));
 		}
 //		if (!rulesets.isEmpty()) {
 //			System.out.println(localName + " -> " + rulesets);

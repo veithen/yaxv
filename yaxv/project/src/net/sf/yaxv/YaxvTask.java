@@ -1,7 +1,6 @@
 package net.sf.yaxv;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -11,6 +10,7 @@ import javax.xml.parsers.SAXParserFactory;
 import net.sf.yaxv.css.CSSContextTracker;
 import net.sf.yaxv.css.HTMLStyleHandler;
 import net.sf.yaxv.css.Parser;
+import net.sf.yaxv.pcha.ContentHandlerSet;
 import net.sf.yaxv.url.URLValidationEngine;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -81,13 +81,12 @@ public class YaxvTask extends Task {
 					log("Processing file " + fileName);
 					Parser cssParser = new Parser();
 					cssParser.setEventListener(new AntParserEventListener(this, fileName));
-					ContentHandlerDispatcher contentHandler = new ContentHandlerDispatcher();
-//					contentHandler.addContentHandler(new LinkExtractor(file.toURL(), urlAttributes, urlValidationEngine, errorListener));
-					CSSContextTracker contextTracker = new CSSContextTracker();
-					contentHandler.addContentHandler(contextTracker);
-					contentHandler.addContentHandler(new HTMLStyleHandler(file.toURL(), cssParser, contextTracker));
+					ContentHandlerSet contentHandlerSet = new ContentHandlerSet();
+//					contentHandlerSet.addContentHandler(new LinkExtractor(file.toURL(), urlAttributes, urlValidationEngine, errorListener));
+					contentHandlerSet.addContentHandler(new CSSContextTracker());
+					contentHandlerSet.addContentHandler(new HTMLStyleHandler(file.toURL(), cssParser));
 					xmlReader.setErrorHandler(new YaxvErrorHandler(errorListener));
-					xmlReader.setContentHandler(contentHandler);
+					xmlReader.setContentHandler(contentHandlerSet);
 					xmlReader.parse(file.getAbsolutePath());
 					errorCount += errorListener.getErrorCount();
 				}

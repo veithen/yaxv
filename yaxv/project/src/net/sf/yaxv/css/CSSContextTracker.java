@@ -1,25 +1,23 @@
 package net.sf.yaxv.css;
 
+import net.sf.yaxv.pcha.DefaultPluggableContentHandler;
+import net.sf.yaxv.pcha.PCHAContext;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-import org.xml.sax.helpers.DefaultHandler;
 
-public class CSSContextTracker extends DefaultHandler {
+public class CSSContextTracker extends DefaultPluggableContentHandler {
 	private CSSContext currentContext;
 	private CSSContext lastChildContext;
 	
-	private Locator locator;
-
-	public void setDocumentLocator(Locator locator) { this.locator = locator; }
-
-	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+	public void startElement(PCHAContext pchaContext, String uri, String localName, String qName, Attributes attributes) throws SAXException {
+		Locator locator = pchaContext.getLocator();
 		currentContext = new CSSContext(currentContext, lastChildContext, locator.getLineNumber(), locator.getColumnNumber(), localName, new AttributesImpl(attributes));
 		lastChildContext = null;
 	}
 
-	public void endElement(String uri, String localName, String qName) throws SAXException {
+	public void endElement(PCHAContext pchaContext, String uri, String localName, String qName) throws SAXException {
 		if (lastChildContext != null) {
 			discardContext(lastChildContext);
 		}
