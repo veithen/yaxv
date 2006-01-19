@@ -4,19 +4,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import net.sf.yaxv.pcha.DefaultPluggableContentHandler;
 import net.sf.yaxv.pcha.PCHAContext;
+import net.sf.yaxv.pcha.URLResolver;
 import net.sf.yaxv.url.URLValidationEngine;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 public class LinkExtractor extends DefaultPluggableContentHandler {
-	private final URL base;
 	private final AttributeSet urlAttributes;
 	private final URLValidationEngine urlValidationEngine;
 	private final ErrorListener errorListener;
 	
-	public LinkExtractor(URL base, AttributeSet urlAttributes, URLValidationEngine urlValidationEngine, ErrorListener errorListener) {
-		this.base = base;
+	public LinkExtractor(AttributeSet urlAttributes, URLValidationEngine urlValidationEngine, ErrorListener errorListener) {
 		this.urlAttributes = urlAttributes;
 		this.urlValidationEngine = urlValidationEngine;
 		this.errorListener = errorListener;
@@ -31,7 +30,7 @@ public class LinkExtractor extends DefaultPluggableContentHandler {
 		for (int i = 0; i<attributes.getLength(); i++) {
 			if (urlAttributes.contains(localName, attributes.getLocalName(i))) {
 				try {
-					URL url = new URL(base, attributes.getValue(i));
+					URL url = ((URLResolver)context.getContentHandler(URLResolver.class)).resolveUrl(attributes.getValue(i));
 					String protocol = url.getProtocol();
 					if (protocol.equals("mailto")) {
 						// TODO: test this
