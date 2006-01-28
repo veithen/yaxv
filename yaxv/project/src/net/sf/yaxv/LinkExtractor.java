@@ -14,11 +14,13 @@ public class LinkExtractor extends DefaultPluggableContentHandler {
 	private final AttributeSet urlAttributes;
 	private final URLValidationEngine urlValidationEngine;
 	private final ErrorListener errorListener;
+	private final FileEventListener listener;
 	
-	public LinkExtractor(AttributeSet urlAttributes, URLValidationEngine urlValidationEngine, ErrorListener errorListener) {
+	public LinkExtractor(AttributeSet urlAttributes, URLValidationEngine urlValidationEngine, ErrorListener errorListener, FileEventListener listener) {
 		this.urlAttributes = urlAttributes;
 		this.urlValidationEngine = urlValidationEngine;
 		this.errorListener = errorListener;
+		this.listener = listener;
 	}
 
 	private void log(PCHAContext context, int level, String message) {
@@ -37,7 +39,8 @@ public class LinkExtractor extends DefaultPluggableContentHandler {
 						// Do nothing
 					} else if (protocol.equals("file") || protocol.equals("http") || protocol.equals("https") || protocol.equals("ftp")) {
 //							System.out.println("Link to check: " + url);
-						urlValidationEngine.validate(url, errorListener);
+						Locator locator = context.getLocator();
+						urlValidationEngine.validateLink(url, new AntLinkValidationEventListener(listener, locator.getLineNumber(), locator.getColumnNumber()));
 					} else {
 						log(context, ErrorListener.ERROR, "Invalid protocol in URL " + url);
 					}

@@ -30,7 +30,7 @@ public class CssValidatorTask extends Task {
 			for (int i=0; i<files.length; i++) {
 				String fileName = files[i];
 				try {
-					cssParser.setEventListener(new AntParserEventListener(this, fileName));
+//					cssParser.setEventListener(new AntParserEventListener(this, fileName));
 					cssParser.parseStylesheet(new FileInputStream(new File(dir, fileName)));
 				}
 				catch (IOException ex) {

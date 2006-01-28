@@ -80,10 +80,11 @@ public class YaxvTask extends Task {
 				ErrorListener errorListener = new ErrorListener(this, fileName);
 				try {
 					log("Processing file " + fileName);
+					FileEventListener listener = new FileEventListener(this, fileName);
 					Parser cssParser = new Parser();
-					cssParser.setEventListener(new AntParserEventListener(this, fileName));
+					cssParser.setEventListener(new AntParserEventListener(listener));
 					ContentHandlerSet contentHandlerSet = new ContentHandlerSet();
-					contentHandlerSet.addContentHandler(new LinkExtractor(urlAttributes, urlValidationEngine, errorListener));
+					contentHandlerSet.addContentHandler(new LinkExtractor(urlAttributes, urlValidationEngine, errorListener, listener));
 					contentHandlerSet.addContentHandler(new CSSContextTracker());
 					contentHandlerSet.addContentHandler(new HTMLStyleHandler(cssParser));
 					contentHandlerSet.addContentHandler(new HTMLURLResolver(file.toURL()));
@@ -105,8 +106,10 @@ public class YaxvTask extends Task {
 					ex.printStackTrace();
 					throw new BuildException("Unexpected exception: " + ex.getMessage());
 				}
+				urlValidationEngine.flushProcessed();
 			}
 		}
+		urlValidationEngine.finish();
 		if (errorCount > 0) {
 			log("Found " + errorCount + " errors");
 			throw new BuildException("Validation failed");

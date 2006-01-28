@@ -6,10 +6,31 @@
     <delete dir="build"/>
   </target>
   
-  <target name="compile">
+  <target name="compile-tools">
+    <mkdir dir="build/tools"/>
+    <javac srcdir="tools" destdir="build/tools" debug="true"/>
+  </target>
+  
+  <target name="mkresources" depends="compile-tools">
+    <mkdir dir="build/gen-src/net/sf/yaxv"/>
+    <java dir="." fork="true" classname="mkresources">
+      <classpath>
+        <pathelement path="build/tools"/>
+        <pathelement path="resources"/>
+      </classpath>
+    </java>
+  </target>
+  
+  <target name="compile-gen" depends="mkresources">
+    <mkdir dir="build/gen"/>
+    <javac srcdir="build/gen-src" destdir="build/gen" debug="true"/>
+  </target>
+  
+  <target name="compile" depends="compile-gen">
     <mkdir dir="build/yaxv"/>
     <javac srcdir="src" destdir="build/yaxv" debug="true">
       <classpath>
+	<pathelement location="build/gen"/>
         <pathelement location="../../vendor/jars/${ant.jar}"/>
         <pathelement location="../../vendor/inetlib/inetlib-1.1.1.jar"/>
       </classpath>
@@ -22,6 +43,7 @@
       <classpath>
         <pathelement location="../../vendor/jars/${junit.jar}"/>
 	<pathelement location="build/yaxv"/>
+	<pathelement location="build/gen"/>
       </classpath>
     </javac>
   </target>
@@ -35,6 +57,7 @@
       <classpath>
         <pathelement location="build/test"/>
         <pathelement location="build/yaxv"/>
+        <pathelement location="build/gen"/>
         <pathelement location="resources"/>
       </classpath>
     </junit>
@@ -43,6 +66,7 @@
   <target name="jar" depends="compile">
     <jar jarfile="yaxv.jar">
       <fileset dir="build/yaxv"/>
+      <fileset dir="build/gen"/>
       <fileset dir="resources"/>
     </jar>
   </target>

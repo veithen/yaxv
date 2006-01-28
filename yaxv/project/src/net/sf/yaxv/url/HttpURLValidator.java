@@ -5,14 +5,10 @@ import gnu.inet.http.Response;
 import java.io.IOException;
 import java.net.URL;
 import net.sf.yaxv.ErrorListener;
+import net.sf.yaxv.Resources;
 
-public class HttpURLValidator {
-	
-	/** Creates a new instance of HttpURLValidator */
-	public HttpURLValidator() {
-	}
-	
-	public void validate(URL url, ErrorListener errorListener) throws IOException {
+public class HttpURLValidator implements URLValidator {
+	public LinkValidationEvent[] validate(URL url) throws IOException {
 		while (true) {
 			HTTPConnection connection;
 			{
@@ -28,15 +24,13 @@ public class HttpURLValidator {
 
 				int code = response.getCode();
 				if (code == 200) {
-					return;
+					return null;
 				} else if (code == 404) {
-					errorListener.log(ErrorListener.ERROR, -1, -1, "Broken link to " + url + ": " + code);
-					return;
+					return new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_HTTP_BROKEN_LINK, new Object[] { url, new Integer(code) } ) };
 				} else if (code == 302) {
 					url = new URL(url, response.getHeader("Location"));
 				} else {
-					errorListener.log(ErrorListener.ERROR, -1, -1, "Unrecognized response code for " + url + ": " + code);
-					return;
+					return new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_HTTP_UNRECOGNIZED_RESPONSE_CODE, new Object[] { url, new Integer(code) } ) };
 				}
 			}
 			finally {

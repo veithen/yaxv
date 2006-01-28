@@ -17,6 +17,11 @@
                     <type>java</type>
                     <location>test</location>
                 </source-folder>
+                <source-folder>
+                    <label>tools</label>
+                    <type>java</type>
+                    <location>tools</location>
+                </source-folder>
             </folders>
             <ide-actions>
                 <action name="build">
@@ -48,6 +53,10 @@
                         <label>test</label>
                         <location>test</location>
                     </source-folder>
+                    <source-folder style="packages">
+                        <label>tools</label>
+                        <location>tools</location>
+                    </source-folder>
                     <source-file>
                         <location>build.xml</location>
                     </source-file>
@@ -64,7 +73,7 @@
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/2">
             <compilation-unit>
                 <package-root>src</package-root>
-                <classpath mode="compile">../../vendor/jar/ant-1.6.2.jar:../../vendor/inetlib/inetlib-1.1.1.jar</classpath>
+                <classpath mode="compile">../../vendor/jar/ant-1.6.2.jar:../../vendor/inetlib/inetlib-1.1.1.jar:build/gen</classpath>
                 <built-to>build/yaxv</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>
@@ -72,6 +81,10 @@
                 <package-root>test</package-root>
                 <unit-tests/>
                 <classpath mode="compile">src:../../vendor/jar/junit-3.8.1.jar:build/yaxv</classpath>
+                <source-level>1.5</source-level>
+            </compilation-unit>
+            <compilation-unit>
+                <package-root>tools</package-root>
                 <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>

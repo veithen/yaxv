@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
+import net.sf.yaxv.Resources;
 import net.sf.yaxv.css.selector.AdjacentSelector;
 import net.sf.yaxv.css.selector.BaseSelector;
 import net.sf.yaxv.css.selector.ChildSelector;
@@ -175,7 +176,7 @@ public class Parser {
 			nextToken = in.nextToken();
 			if (nextToken instanceof RBrace) {
 				in.consume();
-				error(nextToken, "css.ruleset.terminated.by.semicolon");
+				error(nextToken, Resources.CSS_RULESET_TERMINATED_BY_SEMICOLON);
 				break;
 			}
 		}
