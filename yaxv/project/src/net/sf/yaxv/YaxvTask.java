@@ -26,6 +26,10 @@ import org.xml.sax.XMLReader;
 public class YaxvTask extends Task {
 	private final List filesets = new LinkedList();
 	
+	private File linkcache;
+	
+	public void setLinkcache(File value) { linkcache = value; }
+	
 	public void add(FileSet fileset) { filesets.add(fileset); }
 
 	public void execute() throws BuildException {
@@ -66,8 +70,16 @@ public class YaxvTask extends Task {
 			throw new BuildException("Unable to read URL attribute set: " + ex.getMessage());
 		}
 		
-		// Set up URL validation engine
-		LinkValidationEngine urlValidationEngine = new LinkValidationEngine(10);
+		// Set up link validation engine
+		LinkValidationEngine linkValidationEngine = new LinkValidationEngine(10);
+		if (linkcache != null && linkcache.exists()) {
+			try {
+				linkValidationEngine.loadCacheFile(linkcache);
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
 		
 		int errorCount = 0;
 		for (Iterator it = filesets.iterator(); it.hasNext(); ) {
@@ -84,7 +96,7 @@ public class YaxvTask extends Task {
 					Parser cssParser = new Parser();
 					cssParser.setEventListener(new AntParserEventListener(listener));
 					ContentHandlerSet contentHandlerSet = new ContentHandlerSet();
-					contentHandlerSet.addContentHandler(new LinkExtractor(urlAttributes, urlValidationEngine, errorListener, listener));
+					contentHandlerSet.addContentHandler(new LinkExtractor(urlAttributes, linkValidationEngine, errorListener, listener));
 					contentHandlerSet.addContentHandler(new CSSContextTracker());
 					contentHandlerSet.addContentHandler(new HTMLStyleHandler(cssParser));
 					contentHandlerSet.addContentHandler(new HTMLURIResolver(file.toURI()));
@@ -106,10 +118,18 @@ public class YaxvTask extends Task {
 					ex.printStackTrace();
 					throw new BuildException("Unexpected exception: " + ex.getMessage());
 				}
-				urlValidationEngine.flushProcessed();
+				linkValidationEngine.flushProcessed();
 			}
 		}
-		urlValidationEngine.finish();
+		linkValidationEngine.finish();
+		if (linkcache != null) {
+			try {
+				linkValidationEngine.writeCacheFile(linkcache);
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
 		if (errorCount > 0) {
 			log("Found " + errorCount + " errors");
 			throw new BuildException("Validation failed");

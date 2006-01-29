@@ -1,7 +1,13 @@
 package net.sf.yaxv.url;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,12 +23,25 @@ public class LinkValidationEngine {
 		private final LinkValidator validator;
 		private LinkValidationEvent[] events;
 		private boolean processed = false;
+		private long processedTime;
 		private List/*<LinkValidationEventListener>*/ pendingListeners = new LinkedList();
 		
-		public Target(URI url, LinkValidator validator) {
-			this.uri = url;
+		public Target(URI uri, LinkValidator validator) {
+			this.uri = uri;
 			this.validator = validator;
 		}
+		
+		public Target(URI uri, long processedTime, LinkValidationEvent[] events) {
+			this.uri = uri;
+			validator = null;
+			processed = true;
+			this.processedTime = processedTime;
+			this.events = events;
+		}
+		
+		public URI getURI() { return uri; }
+		public LinkValidationEvent[] getEvents() { return events; }
+		public long getProcessedTime() { return processedTime; }
 		
 		public void process() {
 			LinkValidationEvent[] events;
@@ -30,14 +49,15 @@ public class LinkValidationEngine {
 				events = validator.validate(uri);
 			}
 			catch (UnknownHostException ex) {
-				events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_UNKNOWN_HOST, new Object[] { uri }) };
+				events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_UNKNOWN_HOST, new String[] { uri.toString() }) };
 			}
 			catch (IOException ex) {
-				events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_BROKEN_LINK, new Object[] { uri, ex.getMessage() }) };
+				events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_BROKEN_LINK, new String[] { uri.toString(), ex.getMessage() }) };
 			}
 			synchronized (this) {
 				this.events = events;
 				processed = true;
+				processedTime = System.currentTimeMillis();
 			}
 		}
 		
@@ -120,6 +140,7 @@ public class LinkValidationEngine {
 	
 	public LinkValidationEngine(int threads) {
 		validators.put("http", new HttpLinkValidator());
+		validators.put("file", new FileLinkValidator());
 		state.setStandby(true);
 		workers = new Worker[threads];
 		for (int i=0; i<threads; i++) {
@@ -127,6 +148,63 @@ public class LinkValidationEngine {
 			workers[i] = worker;
 			new Thread(worker).start();
 		}
+	}
+	
+	public void writeCacheFile(File file) throws IOException {
+		DataOutputStream out = new DataOutputStream(new FileOutputStream(file));
+		for (Iterator it = targets.values().iterator(); it.hasNext(); ) {
+			Target target = (Target)it.next();
+			out.writeLong(target.getProcessedTime());
+			out.writeUTF(target.getURI().toString());
+			LinkValidationEvent[] events = target.getEvents();
+			if (events == null) {
+				out.writeInt(0);
+			} else {
+				out.writeInt(events.length);
+				for (int i=0; i<events.length; i++) {
+					LinkValidationEvent event = events[i];
+					out.writeUTF(event.getKey());
+					String[] args = event.getArgs();
+					out.writeInt(args.length);
+					for (int j=0; j<args.length; j++) {
+						out.writeUTF(args[j]);
+					}
+				}
+			}
+		}
+		out.close();
+	}
+	
+	public void loadCacheFile(File file) throws IOException {
+		DataInputStream in = new DataInputStream(new FileInputStream(file));
+		while (in.available() > 0) {
+			long processedTime = in.readLong();
+			String uriString = in.readUTF();
+			LinkValidationEvent[] events;
+			int eventCount = in.readInt();
+			if (eventCount == 0) {
+				events = null;
+			} else {
+				events = new LinkValidationEvent[eventCount];
+				for (int i=0; i<eventCount; i++) {
+					String key = in.readUTF();
+					int argCount = in.readInt();
+					String[] args = new String[argCount];
+					for (int j=0; j<argCount; j++) {
+						args[j] = in.readUTF();
+					}
+					events[i] = new LinkValidationEvent(key, args);
+				}
+			}
+			if (System.currentTimeMillis() - processedTime < 24L*3600000L) {
+				try {
+					URI uri = new URI(uriString);
+					targets.put(uri, new Target(uri, processedTime, events));
+				}
+				catch (URISyntaxException ex) {}
+			}
+		}
+		in.close();
 	}
 	
 	public void validateLink(URI uri, LinkValidationEventListener listener) {
@@ -170,6 +248,7 @@ public class LinkValidationEngine {
 		synchronized (incoming) {
 			incoming.notifyAll();
 		}
+		// Wait until the processed queue has become empty and all workers have stopped
 		while (true) {
 			flushProcessed();
 			synchronized (processed) {
