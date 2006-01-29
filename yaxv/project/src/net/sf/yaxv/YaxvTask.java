@@ -12,7 +12,7 @@ import net.sf.yaxv.css.HTMLStyleHandler;
 import net.sf.yaxv.css.Parser;
 import net.sf.yaxv.html.HTMLURLResolver;
 import net.sf.yaxv.pcha.ContentHandlerSet;
-import net.sf.yaxv.url.URLValidationEngine;
+import net.sf.yaxv.url.LinkValidationEngine;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -67,7 +67,7 @@ public class YaxvTask extends Task {
 		}
 		
 		// Set up URL validation engine
-		URLValidationEngine urlValidationEngine = new URLValidationEngine(10);
+		LinkValidationEngine urlValidationEngine = new LinkValidationEngine(10);
 		
 		int errorCount = 0;
 		for (Iterator it = filesets.iterator(); it.hasNext(); ) {

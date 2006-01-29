@@ -10,15 +10,15 @@ import java.util.List;
 import java.util.Map;
 import net.sf.yaxv.Resources;
 
-public class URLValidationEngine {
+public class LinkValidationEngine {
 	private static class Target {
 		private final URL url;
-		private final URLValidator validator;
+		private final LinkValidator validator;
 		private LinkValidationEvent[] events;
 		private boolean processed = false;
 		private List/*<LinkValidationEventListener>*/ pendingListeners = new LinkedList();
 		
-		public Target(URL url, URLValidator validator) {
+		public Target(URL url, LinkValidator validator) {
 			this.url = url;
 			this.validator = validator;
 		}
@@ -117,8 +117,8 @@ public class URLValidationEngine {
 	
 	private final State state = new State();
 	
-	public URLValidationEngine(int threads) {
-		validators.put("http", new HttpURLValidator());
+	public LinkValidationEngine(int threads) {
+		validators.put("http", new HttpLinkValidator());
 		state.setStandby(true);
 		workers = new Worker[threads];
 		for (int i=0; i<threads; i++) {
@@ -136,7 +136,7 @@ public class URLValidationEngine {
 		Target target = (Target)targets.get(key);
 		if (target == null) {
 			String protocol = url.getProtocol();
-			URLValidator validator = (URLValidator)validators.get(protocol);
+			LinkValidator validator = (LinkValidator)validators.get(protocol);
 			if (validator != null) {
 				target = new Target(url, validator);
 				targets.put(key, target);

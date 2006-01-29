@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.net.URL;
 import net.sf.yaxv.Resources;
 
-public class HttpURLValidator implements URLValidator {
+public class HttpLinkValidator implements LinkValidator {
 	public LinkValidationEvent[] validate(URL url) throws IOException {
 		while (true) {
 			HTTPConnection connection;

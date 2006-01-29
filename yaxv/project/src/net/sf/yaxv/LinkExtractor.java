@@ -5,18 +5,18 @@ import java.net.URL;
 import net.sf.yaxv.pcha.DefaultPluggableContentHandler;
 import net.sf.yaxv.pcha.PCHAContext;
 import net.sf.yaxv.pcha.URLResolver;
-import net.sf.yaxv.url.URLValidationEngine;
+import net.sf.yaxv.url.LinkValidationEngine;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 public class LinkExtractor extends DefaultPluggableContentHandler {
 	private final AttributeSet urlAttributes;
-	private final URLValidationEngine urlValidationEngine;
+	private final LinkValidationEngine urlValidationEngine;
 	private final ErrorListener errorListener;
 	private final FileEventListener listener;
 	
-	public LinkExtractor(AttributeSet urlAttributes, URLValidationEngine urlValidationEngine, ErrorListener errorListener, FileEventListener listener) {
+	public LinkExtractor(AttributeSet urlAttributes, LinkValidationEngine urlValidationEngine, ErrorListener errorListener, FileEventListener listener) {
 		this.urlAttributes = urlAttributes;
 		this.urlValidationEngine = urlValidationEngine;
 		this.errorListener = errorListener;
