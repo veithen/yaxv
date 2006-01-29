@@ -1,5 +1,6 @@
 package net.sf.yaxv.css;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -12,20 +13,18 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class HTMLStyleHandler extends DefaultPluggableContentHandler {
-	private final Parser cssParser;
+	private final StylesheetCache cache;
 	private final List stylesheets = new LinkedList();
 	
-	public HTMLStyleHandler(Parser cssParser) {
-		this.cssParser = cssParser;
+	public HTMLStyleHandler(StylesheetCache cache) {
+		this.cache = cache;
 	}
 	
 	public void startElement(PCHAContext context, String uri, String localName, String qName, Attributes attributes) throws SAXException {
 		if (localName.equals("link") && "stylesheet".equals(attributes.getValue("rel")) && "text/css".equals(attributes.getValue("type"))) {
 			try {
-				URL stylesheetUrl = ((URIResolver)context.getContentHandler(URIResolver.class)).resolveURI(attributes.getValue("href")).toURL();
-				System.out.println("Opening stylesheet " + stylesheetUrl);
-				stylesheets.add(cssParser.parseStylesheet(stylesheetUrl.openStream()));
-				// TODO: close stream
+				URI stylesheetURI = ((URIResolver)context.getContentHandler(URIResolver.class)).resolveURI(attributes.getValue("href"));
+				stylesheets.add(cache.loadStylesheet(stylesheetURI));
 			}
 			catch (Exception ex) {
 				ex.printStackTrace();

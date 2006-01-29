@@ -1,14 +1,13 @@
 package net.sf.yaxv;
 
 import java.text.MessageFormat;
-import org.apache.tools.ant.Task;
 
 public class FileEventListener {
-	private final Task task;
+	private final TaskEventListener parent;
 	private final String fileName;
 	
-	public FileEventListener(Task task, String fileName) {
-		this.task = task;
+	public FileEventListener(TaskEventListener parent, String fileName) {
+		this.parent = parent;
 		this.fileName = fileName;
 	}
 	
@@ -17,6 +16,6 @@ public class FileEventListener {
 	}
 	
 	public void event(int line, int column, String key, Object[] args) {
-		task.log(fileName + ":" + line + ":" + column + " " + MessageFormat.format(Resources.MESSAGES.getString(key), args) + " (" + key + ")");
+		parent.event(fileName, line, column, key, args);
 	}
 }

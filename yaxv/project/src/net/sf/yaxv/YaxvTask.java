@@ -10,6 +10,7 @@ import javax.xml.parsers.SAXParserFactory;
 import net.sf.yaxv.css.CSSContextTracker;
 import net.sf.yaxv.css.HTMLStyleHandler;
 import net.sf.yaxv.css.Parser;
+import net.sf.yaxv.css.StylesheetCache;
 import net.sf.yaxv.html.HTMLURIResolver;
 import net.sf.yaxv.pcha.ContentHandlerSet;
 import net.sf.yaxv.url.LinkValidationEngine;
@@ -70,6 +71,8 @@ public class YaxvTask extends Task {
 			throw new BuildException("Unable to read URL attribute set: " + ex.getMessage());
 		}
 		
+		TaskEventListener taskEventListener = new TaskEventListener(this);
+		
 		// Set up link validation engine
 		LinkValidationEngine linkValidationEngine = new LinkValidationEngine(10);
 		if (linkcache != null && linkcache.exists()) {
@@ -80,6 +83,9 @@ public class YaxvTask extends Task {
 				ex.printStackTrace();
 			}
 		}
+		
+		// Set up stylesheet cache
+		StylesheetCache stylesheetCache = new StylesheetCache(new Parser(), new AntStylesheetCacheEventListener(taskEventListener));
 		
 		int errorCount = 0;
 		for (Iterator it = filesets.iterator(); it.hasNext(); ) {
@@ -92,13 +98,12 @@ public class YaxvTask extends Task {
 				ErrorListener errorListener = new ErrorListener(this, fileName);
 				try {
 					log("Processing file " + fileName);
-					FileEventListener listener = new FileEventListener(this, fileName);
+					FileEventListener listener = new FileEventListener(taskEventListener, fileName);
 					Parser cssParser = new Parser();
-					cssParser.setEventListener(new AntParserEventListener(listener));
 					ContentHandlerSet contentHandlerSet = new ContentHandlerSet();
 					contentHandlerSet.addContentHandler(new LinkExtractor(urlAttributes, linkValidationEngine, errorListener, listener));
 					contentHandlerSet.addContentHandler(new CSSContextTracker());
-					contentHandlerSet.addContentHandler(new HTMLStyleHandler(cssParser));
+					contentHandlerSet.addContentHandler(new HTMLStyleHandler(stylesheetCache));
 					contentHandlerSet.addContentHandler(new HTMLURIResolver(file.toURI()));
 					xmlReader.setErrorHandler(new YaxvErrorHandler(errorListener));
 					xmlReader.setContentHandler(contentHandlerSet);
