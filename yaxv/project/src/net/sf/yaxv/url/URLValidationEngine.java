@@ -14,7 +14,6 @@ public class URLValidationEngine {
 	private static class Target {
 		private final URL url;
 		private final URLValidator validator;
-		private final List/*<Link>*/ links = new LinkedList();
 		private LinkValidationEvent[] events;
 		private boolean processed = false;
 		private List/*<LinkValidationEventListener>*/ pendingListeners = new LinkedList();

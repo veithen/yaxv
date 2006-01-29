@@ -4,7 +4,6 @@ import gnu.inet.http.HTTPConnection;
 import gnu.inet.http.Response;
 import java.io.IOException;
 import java.net.URL;
-import net.sf.yaxv.ErrorListener;
 import net.sf.yaxv.Resources;
 
 public class HttpURLValidator implements URLValidator {

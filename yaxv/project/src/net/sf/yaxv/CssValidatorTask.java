@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import net.sf.yaxv.css.CSSParserException;
 import net.sf.yaxv.css.Parser;
-import net.sf.yaxv.css.ParserEventListener;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
