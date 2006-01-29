@@ -1,38 +1,39 @@
 package net.sf.yaxv.url;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import net.sf.yaxv.Resources;
 
 public class LinkValidationEngine {
 	private static class Target {
-		private final URL url;
+		private final URI uri;
 		private final LinkValidator validator;
 		private LinkValidationEvent[] events;
 		private boolean processed = false;
 		private List/*<LinkValidationEventListener>*/ pendingListeners = new LinkedList();
 		
-		public Target(URL url, LinkValidator validator) {
-			this.url = url;
+		public Target(URI url, LinkValidator validator) {
+			this.uri = url;
 			this.validator = validator;
 		}
 		
 		public void process() {
 			LinkValidationEvent[] events;
 			try {
-				events = validator.validate(url);
+				events = validator.validate(uri);
 			}
 			catch (UnknownHostException ex) {
-				events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_UNKNOWN_HOST, new Object[] { url }) };
+				events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_UNKNOWN_HOST, new Object[] { uri }) };
 			}
 			catch (IOException ex) {
-				events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_BROKEN_LINK, new Object[] { url, ex.getMessage() }) };
+				events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_BROKEN_LINK, new Object[] { uri, ex.getMessage() }) };
 			}
 			synchronized (this) {
 				this.events = events;
@@ -113,7 +114,7 @@ public class LinkValidationEngine {
 	private final LinkedList/*<Target>*/ processed = new LinkedList();
 	private final Worker[] workers;
 	
-	private final Map/*<String,Target>*/ targets = new HashMap();
+	private final Map/*<URI,Target>*/ targets = new HashMap();
 	
 	private final State state = new State();
 	
@@ -128,24 +129,20 @@ public class LinkValidationEngine {
 		}
 	}
 	
-	public void validateLink(URL url, LinkValidationEventListener listener) {
-		// We use the string representation of the url (and not the url itself) to do the lookup,
-		// because hosts comparison requires name resolution and this would make lookups 
-		// blocking operations (see documentation of the equals and hashCode method of java.net.URL).
-		String key = url.toString();
-		Target target = (Target)targets.get(key);
+	public void validateLink(URI uri, LinkValidationEventListener listener) {
+		Target target = (Target)targets.get(uri);
 		if (target == null) {
-			String protocol = url.getProtocol();
-			LinkValidator validator = (LinkValidator)validators.get(protocol);
+			String scheme = uri.getScheme();
+			LinkValidator validator = (LinkValidator)validators.get(scheme);
 			if (validator != null) {
-				target = new Target(url, validator);
-				targets.put(key, target);
+				target = new Target(uri, validator);
+				targets.put(uri, target);
 				synchronized (incoming) {
 					incoming.add(target);
 					incoming.notify();
 				}
 			} else {
-				listener.event(Resources.LINK_UNSUPPORTED_PROTOCOL, new Object[] { protocol });
+				listener.event(Resources.LINK_UNSUPPORTED_SCHEME, new Object[] { scheme });
 			}
 		}
 		if (target != null) {

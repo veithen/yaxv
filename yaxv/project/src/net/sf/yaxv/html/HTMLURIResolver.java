@@ -1,18 +1,20 @@
 package net.sf.yaxv.html;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import net.sf.yaxv.pcha.DefaultPluggableContentHandler;
 import net.sf.yaxv.pcha.PCHAContext;
-import net.sf.yaxv.pcha.URLResolver;
+import net.sf.yaxv.pcha.URIResolver;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-public class HTMLURLResolver extends DefaultPluggableContentHandler implements URLResolver {
-	private final URL defaultBase;
-	private URL base;
+public class HTMLURIResolver extends DefaultPluggableContentHandler implements URIResolver {
+	private final URI defaultBase;
+	private URI base;
 	
-	public HTMLURLResolver(URL defaultBase) {
+	public HTMLURIResolver(URI defaultBase) {
 		this.defaultBase = defaultBase;
 	}
 	
@@ -23,15 +25,15 @@ public class HTMLURLResolver extends DefaultPluggableContentHandler implements U
 	public void startElement(PCHAContext context, String uri, String localName, String qName, Attributes atts) throws SAXException {
 		if ("base".equals(localName)) {
 			try {
-				base = new URL(atts.getValue("href"));
+				base = new URI(atts.getValue("href"));
 			}
-			catch (MalformedURLException ex) {
+			catch (URISyntaxException ex) {
 				throw new SAXException(ex);
 			}
 		}
 	}
 	
-	public URL resolveUrl(String url) throws MalformedURLException {
-		return new URL(base, url);
+	public URI resolveURI(String uri) throws URISyntaxException {
+		return base.resolve(uri);
 	}
 }

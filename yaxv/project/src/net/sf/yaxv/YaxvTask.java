@@ -10,7 +10,7 @@ import javax.xml.parsers.SAXParserFactory;
 import net.sf.yaxv.css.CSSContextTracker;
 import net.sf.yaxv.css.HTMLStyleHandler;
 import net.sf.yaxv.css.Parser;
-import net.sf.yaxv.html.HTMLURLResolver;
+import net.sf.yaxv.html.HTMLURIResolver;
 import net.sf.yaxv.pcha.ContentHandlerSet;
 import net.sf.yaxv.url.LinkValidationEngine;
 import org.apache.tools.ant.BuildException;
@@ -87,7 +87,7 @@ public class YaxvTask extends Task {
 					contentHandlerSet.addContentHandler(new LinkExtractor(urlAttributes, urlValidationEngine, errorListener, listener));
 					contentHandlerSet.addContentHandler(new CSSContextTracker());
 					contentHandlerSet.addContentHandler(new HTMLStyleHandler(cssParser));
-					contentHandlerSet.addContentHandler(new HTMLURLResolver(file.toURL()));
+					contentHandlerSet.addContentHandler(new HTMLURIResolver(file.toURI()));
 					xmlReader.setErrorHandler(new YaxvErrorHandler(errorListener));
 					xmlReader.setContentHandler(contentHandlerSet);
 					xmlReader.parse(file.getAbsolutePath());

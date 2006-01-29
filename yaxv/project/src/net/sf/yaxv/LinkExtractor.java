@@ -1,24 +1,26 @@
 package net.sf.yaxv;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import net.sf.yaxv.pcha.DefaultPluggableContentHandler;
 import net.sf.yaxv.pcha.PCHAContext;
-import net.sf.yaxv.pcha.URLResolver;
+import net.sf.yaxv.pcha.URIResolver;
 import net.sf.yaxv.url.LinkValidationEngine;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 public class LinkExtractor extends DefaultPluggableContentHandler {
 	private final AttributeSet urlAttributes;
-	private final LinkValidationEngine urlValidationEngine;
+	private final LinkValidationEngine linkValidationEngine;
 	private final ErrorListener errorListener;
 	private final FileEventListener listener;
 	
-	public LinkExtractor(AttributeSet urlAttributes, LinkValidationEngine urlValidationEngine, ErrorListener errorListener, FileEventListener listener) {
+	public LinkExtractor(AttributeSet urlAttributes, LinkValidationEngine linkValidationEngine, ErrorListener errorListener, FileEventListener listener) {
 		this.urlAttributes = urlAttributes;
-		this.urlValidationEngine = urlValidationEngine;
+		this.linkValidationEngine = linkValidationEngine;
 		this.errorListener = errorListener;
 		this.listener = listener;
 	}
@@ -28,25 +30,25 @@ public class LinkExtractor extends DefaultPluggableContentHandler {
 		errorListener.log(level, locator.getLineNumber(), locator.getColumnNumber(), message);
 	}
 	
-	public void startElement(PCHAContext context, String uri, String localName, String qName, Attributes attributes) throws SAXException {
+	public void startElement(PCHAContext context, String namespace, String localName, String qName, Attributes attributes) throws SAXException {
 		for (int i = 0; i<attributes.getLength(); i++) {
 			if (urlAttributes.contains(localName, attributes.getLocalName(i))) {
 				try {
-					URL url = ((URLResolver)context.getContentHandler(URLResolver.class)).resolveUrl(attributes.getValue(i));
-					String protocol = url.getProtocol();
-					if (protocol.equals("mailto")) {
+					URI uri = ((URIResolver)context.getContentHandler(URIResolver.class)).resolveURI(attributes.getValue(i));
+					String scheme = uri.getScheme();
+					if (scheme.equals("mailto")) {
 						// TODO: test this
 						// Do nothing
-					} else if (protocol.equals("file") || protocol.equals("http") || protocol.equals("https") || protocol.equals("ftp")) {
+					} else if (scheme.equals("file") || scheme.equals("http") || scheme.equals("https") || scheme.equals("ftp")) {
 //							System.out.println("Link to check: " + url);
 						Locator locator = context.getLocator();
-						urlValidationEngine.validateLink(url, new AntLinkValidationEventListener(listener, locator.getLineNumber(), locator.getColumnNumber()));
+						linkValidationEngine.validateLink(uri, new AntLinkValidationEventListener(listener, locator.getLineNumber(), locator.getColumnNumber()));
 					} else {
-						log(context, ErrorListener.ERROR, "Invalid protocol in URL " + url);
+						log(context, ErrorListener.ERROR, "Invalid scheme in URI " + uri);
 					}
-				} catch (MalformedURLException ex) {
+				} catch (URISyntaxException ex) {
 					// TODO
-					System.out.println("Malformed URL");
+					System.out.println("Malformed URI");
 				}
 			}
 		}
