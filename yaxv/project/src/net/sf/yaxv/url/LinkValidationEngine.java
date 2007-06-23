@@ -23,8 +23,8 @@ public class LinkValidationEngine {
 		private final LinkValidator validator;
 		private LinkValidationEvent[] events;
 		private boolean processed = false;
+		private List<LinkValidationEventListener> pendingListeners = new LinkedList<LinkValidationEventListener>();
 		private long processedTime;
-		private List/*<LinkValidationEventListener>*/ pendingListeners = new LinkedList();
 		
 		public Target(URI uri, LinkValidator validator) {
 			this.uri = uri;
@@ -90,8 +90,18 @@ public class LinkValidationEngine {
 		}
 	}
 	
-	private class Worker implements Runnable {
+	private static class Worker implements Runnable {
+		private final LinkedList<Target> incoming;
+		private final LinkedList<Target> processed;
+		private final State state;
+		
 		private boolean running = true;
+		
+		public Worker(LinkedList<Target> incoming, LinkedList<Target> processed, State state) {
+			this.incoming = incoming;
+			this.processed = processed;
+			this.state = state;
+		}
 		
 		public void run() {
 			main: while (true) {
@@ -106,7 +116,7 @@ public class LinkValidationEngine {
 						}
 						catch (InterruptedException ex) {}
 					}
-					target = (Target)incoming.removeFirst();
+					target = incoming.removeFirst();
 				}
 				target.process();
 				synchronized (processed) {
@@ -119,22 +129,24 @@ public class LinkValidationEngine {
 			}
 		}
 		
-		private boolean isRunning() { return running; }
+		public boolean isRunning() { return running; }
 	}
 	
 	private static class State {
 		private boolean standby;
 		
+		public State() {}
+		
 		public synchronized void setStandby(boolean standby) { this.standby = standby; }
 		public synchronized boolean isStandby() { return standby; }
 	}
 	
-	private final Map/*<String,URLValidator>*/ validators = new HashMap();
-	private final LinkedList/*<Target>*/ incoming = new LinkedList();
-	private final LinkedList/*<Target>*/ processed = new LinkedList();
+	private final Map<String,LinkValidator> validators = new HashMap<String,LinkValidator>();
+	private final LinkedList<Target> incoming = new LinkedList<Target>();
+	private final LinkedList<Target> processed = new LinkedList<Target>();
 	private final Worker[] workers;
 	
-	private final Map/*<URI,Target>*/ targets = new HashMap();
+	private final Map<URI,Target> targets = new HashMap<URI,Target>();
 	
 	private final State state = new State();
 	
@@ -144,7 +156,7 @@ public class LinkValidationEngine {
 		state.setStandby(true);
 		workers = new Worker[threads];
 		for (int i=0; i<threads; i++) {
-			Worker worker = new Worker();
+			Worker worker = new Worker(incoming, processed, state);
 			workers[i] = worker;
 			new Thread(worker).start();
 		}
@@ -208,10 +220,10 @@ public class LinkValidationEngine {
 	}
 	
 	public void validateLink(URI uri, LinkValidationEventListener listener) {
-		Target target = (Target)targets.get(uri);
+		Target target = targets.get(uri);
 		if (target == null) {
 			String scheme = uri.getScheme();
-			LinkValidator validator = (LinkValidator)validators.get(scheme);
+			LinkValidator validator = validators.get(scheme);
 			if (validator != null) {
 				target = new Target(uri, validator);
 				targets.put(uri, target);
@@ -235,7 +247,7 @@ public class LinkValidationEngine {
 				if (processed.isEmpty()) {
 					break;
 				} else {
-					target = (Target)processed.removeFirst();
+					target = processed.removeFirst();
 				}
 			}
 			target.dispatchPending();

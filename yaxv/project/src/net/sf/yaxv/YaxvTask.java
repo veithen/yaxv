@@ -25,14 +25,15 @@ import org.xml.sax.XMLReader;
 // TODO: restrict URL protocols per tag/attribute (<img src="mailto:xxx"/> is invalid)
 // TODO: check content types (<img src="..."/> can only point to image/*)
 public class YaxvTask extends Task {
-	private final List filesets = new LinkedList();
+	private final List<FileSet> filesets = new LinkedList<FileSet>();
 	
 	private File linkcache;
 	
 	public void setLinkcache(File value) { linkcache = value; }
 	
 	public void add(FileSet fileset) { filesets.add(fileset); }
-
+	
+	@Override
 	public void execute() throws BuildException {
 		Project project = getProject();
 		
@@ -59,7 +60,8 @@ public class YaxvTask extends Task {
 			throw new BuildException("Unable to get catalog with XHTML DTDs: " + ex.getMessage());
 		}
 		
-		// Set up the URL attribute set
+		// Set up the URL attribute set, i.e. the set of attributes that contain URLs that must be
+		// validated.
 		AttributeSet urlAttributes;
 		try {
 			urlAttributes = new AttributeSet(YaxvTask.class.getResource("urlattributes"));

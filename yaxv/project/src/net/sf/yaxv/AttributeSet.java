@@ -7,6 +7,13 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Set of (element name, attribute name) elements. This class is used to specify sets of
+ * attributes that require specific processing, for example attributes that contain URLs
+ * that must be validated.
+ * 
+ * @author veithen
+ */
 public class AttributeSet {
 	private static class Entry {
 		private final String element;
