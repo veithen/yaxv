@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project basedir="." default="validate">
+  <taskdef name="yaxv" classname="net.sf.yaxv.YaxvTask">
+    <classpath>
+      <pathelement location="../project/yaxv.jar"/>
+      <pathelement location="../../vendor/inetlib/inetlib-1.1.1.jar"/>
+    </classpath>
+  </taskdef>
+  
+  <target name="validate">
+    <yaxv linkcache="link.cache">
+      <fileset dir="files" includes="**/*.html"/>
+    </yaxv>
+  </target>
+</project>
