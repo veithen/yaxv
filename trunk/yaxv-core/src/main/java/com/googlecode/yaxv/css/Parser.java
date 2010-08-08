@@ -97,7 +97,7 @@ public class Parser {
                     break;
                 }
             }
-            List rulesets = new LinkedList();
+            List<Ruleset> rulesets = new LinkedList<Ruleset>();
             while (true) {
                 nextToken = in.nextToken();
                 if (nextToken instanceof AtKeyword) {
@@ -118,7 +118,7 @@ public class Parser {
                 }
                 consumeSpaceAndCD();
             }
-            return new Stylesheet((Ruleset[])rulesets.toArray(new Ruleset[rulesets.size()]));
+            return new Stylesheet(rulesets.toArray(new Ruleset[rulesets.size()]));
         }
 
         private void parseImport() throws IOException, CSSParserException {
@@ -138,7 +138,7 @@ public class Parser {
         }
 
         private Ruleset parseRuleset() throws IOException, CSSParserException {
-            List selectors = new LinkedList();
+            List<Selector> selectors = new LinkedList<Selector>();
             selectors.add(parseSelector());
             Token nextToken;
             while ((nextToken = in.nextToken()) instanceof Comma) {
@@ -174,7 +174,7 @@ public class Parser {
                 }
             }
 
-            return new Ruleset((Selector[])selectors.toArray(new Selector[selectors.size()]));
+            return new Ruleset(selectors.toArray(new Selector[selectors.size()]));
         }
 
         private Selector parseSelector() throws IOException, CSSParserException {
@@ -215,7 +215,7 @@ public class Parser {
 
         private Selector parseSimpleSelector() throws IOException, CSSParserException {
             BaseSelector baseSelector;
-            List components = new LinkedList();
+            List<SimpleSelectorComponent> components = new LinkedList<SimpleSelectorComponent>();
             Token nextToken = in.nextToken();
             if (nextToken instanceof Identifier) {
                 in.consume();
@@ -256,9 +256,9 @@ public class Parser {
             if (components.isEmpty()) {
                 return baseSelector == null ? null : baseSelector;
             } else if (baseSelector == null && components.size() == 1) {
-                return (Selector)components.get(0);
+                return components.get(0);
             } else {
-                return new SimpleSelector(baseSelector, (SimpleSelectorComponent[])components.toArray(new SimpleSelectorComponent[components.size()]));
+                return new SimpleSelector(baseSelector, components.toArray(new SimpleSelectorComponent[components.size()]));
             }
         }
 

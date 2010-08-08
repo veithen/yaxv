@@ -1,7 +1,5 @@
 package com.googlecode.yaxv;
 
-import java.text.MessageFormat;
-
 public class FileEventListener {
     private final TaskEventListener parent;
     private final String fileName;

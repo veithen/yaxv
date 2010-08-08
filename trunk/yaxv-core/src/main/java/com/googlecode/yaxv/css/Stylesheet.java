@@ -7,16 +7,16 @@ public class Stylesheet {
     private final Ruleset[] rulesets;
     
     public Stylesheet(Ruleset[] rulesets) {
-        this.rulesets = (Ruleset[])rulesets.clone();
+        this.rulesets = rulesets.clone();
     }
     
     public Ruleset[] getRulesets(CSSContext context) {
-        List result = new LinkedList();
-        for (int i=0; i<rulesets.length; i++) {
-            if (rulesets[i].appliesTo(context)) {
-                result.add(rulesets[i]);
+        List<Ruleset> result = new LinkedList<Ruleset>();
+        for (Ruleset ruleset : rulesets) {
+            if (ruleset.appliesTo(context)) {
+                result.add(ruleset);
             }
         }
-        return (Ruleset[])result.toArray(new Ruleset[result.size()]);
+        return result.toArray(new Ruleset[result.size()]);
     }
 }

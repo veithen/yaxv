@@ -10,7 +10,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -80,9 +79,9 @@ public class LinkValidationEngine {
         
         public void dispatchPending() {
             if (events != null && events.length != 0) {
-                for (Iterator it = pendingListeners.iterator(); it.hasNext(); ) {
-                    for (int i=0; i<events.length; i++) {
-                        events[i].dispatch((LinkValidationEventListener)it.next());
+                for (LinkValidationEventListener listener : pendingListeners) {
+                    for (LinkValidationEvent event : events) {
+                        event.dispatch(listener);
                     }
                 }
             }
@@ -164,8 +163,7 @@ public class LinkValidationEngine {
     
     public void writeCacheFile(File file) throws IOException {
         DataOutputStream out = new DataOutputStream(new FileOutputStream(file));
-        for (Iterator it = targets.values().iterator(); it.hasNext(); ) {
-            Target target = (Target)it.next();
+        for (Target target : targets.values()) {
             out.writeLong(target.getProcessedTime());
             out.writeUTF(target.getURI().toString());
             LinkValidationEvent[] events = target.getEvents();

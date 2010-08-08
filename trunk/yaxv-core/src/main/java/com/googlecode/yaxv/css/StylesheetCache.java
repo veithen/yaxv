@@ -8,7 +8,7 @@ import java.util.Map;
 public class StylesheetCache {
     private final Parser cssParser;
     private final StylesheetCacheEventListener listener;
-    private final Map/*<URI,Stylesheet>*/ cache = new HashMap();
+    private final Map<URI,Stylesheet> cache = new HashMap<URI,Stylesheet>();
     
     public StylesheetCache(Parser cssParser, StylesheetCacheEventListener listener) {
         this.cssParser = cssParser;
@@ -18,7 +18,7 @@ public class StylesheetCache {
     public Parser getParser() { return cssParser; }
     
     public Stylesheet loadStylesheet(final URI uri) throws CSSParserException, IOException {
-        Stylesheet stylesheet = (Stylesheet)cache.get(uri);
+        Stylesheet stylesheet = cache.get(uri);
         if (stylesheet == null) {
             stylesheet = cssParser.parseStylesheet(uri.toURL().openStream(), new ParserEventListener() {
                 public int event(int level, int line, int column, String key) {

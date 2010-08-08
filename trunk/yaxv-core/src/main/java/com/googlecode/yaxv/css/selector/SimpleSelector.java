@@ -9,15 +9,15 @@ public class SimpleSelector extends Selector {
     
     public SimpleSelector(BaseSelector baseSelector, SimpleSelectorComponent[] components) {
         this.baseSelector = baseSelector;
-        this.components = (SimpleSelectorComponent[])components.clone();
+        this.components = components.clone();
     }
 
     public boolean selects(CSSContext context) {
         if (!baseSelector.selects(context)) {
             return false;
         }
-        for (int i=0; i<components.length; i++) {
-            if (!components[i].selects(context)) {
+        for (SimpleSelectorComponent component : components) {
+            if (!component.selects(context)) {
                 return false;
             }
         }

@@ -5,7 +5,7 @@ public class Ruleset {
     private final Selector[] selectors;
     
     public Ruleset(Selector[] selectors) {
-        this.selectors = (Selector[])selectors.clone();
+        this.selectors = selectors.clone();
     }
     
     public boolean appliesTo(CSSContext context) {

@@ -38,7 +38,7 @@ public class AttributeSet {
         }
     }
     
-    private final Set set = new HashSet();
+    private final Set<Entry> set = new HashSet<Entry>();
     
     public AttributeSet(URL url) throws IOException, AttributeSetException {
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));

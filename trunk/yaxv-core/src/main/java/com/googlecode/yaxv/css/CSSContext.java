@@ -11,7 +11,7 @@ public class CSSContext {
     private final int column;
     private final String name; // TODO: namespace support
     private final Attributes attributes;
-    private final Set matchedAttributes = new HashSet();
+    private final Set<String> matchedAttributes = new HashSet<String>();
 
     public CSSContext(CSSContext parentContext, CSSContext siblingContext, int line, int column, String name, Attributes attributes) {
         this.parentContext = parentContext;
@@ -28,5 +28,5 @@ public class CSSContext {
     public int getColumnNumber() { return column; }
     public String getName() { return name; }
     public Attributes getAttributes() { return attributes; }
-    public Set getMatchedAttributes() { return matchedAttributes; }
+    public Set<String> getMatchedAttributes() { return matchedAttributes; }
 }

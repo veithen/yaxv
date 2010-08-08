@@ -27,10 +27,10 @@ public class CatalogResolver implements EntityResolver {
         public String getResource() { return resource; }
     }
     
-    private final static Map instances = new HashMap();
+    private final static Map<String,CatalogResolver> instances = new HashMap<String,CatalogResolver>();
     
-    private final Map entriesByPublicId = new HashMap();
-    private final Map entriesBySystemId = new HashMap();
+    private final Map<String,Entry> entriesByPublicId = new HashMap<String,Entry>();
+    private final Map<String,Entry> entriesBySystemId = new HashMap<String,Entry>();
     
     private CatalogResolver(String location) throws CatalogResolverException {
         try {

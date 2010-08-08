@@ -3,6 +3,8 @@ package com.googlecode.yaxv.css;
 import com.googlecode.yaxv.Messages;
 
 public class CSSParserException extends Exception {
+    private static final long serialVersionUID = 4236615824664877051L;
+
     private final int line;
     private final int column;
     private final String key;
