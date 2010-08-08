@@ -59,37 +59,14 @@
         <testSourceDirectory>test</testSourceDirectory>
         <plugins>
             <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.4</version>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>maven-mkresources-plugin</artifactId>
+                <version>${project.version}</version>
                 <executions>
                     <execution>
-                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>run</goal>
+                            <goal>generate</goal>
                         </goals>
-                        <configuration>
-                            <tasks>
-                                <ant antfile="build.xml" target="mkresources"/>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>build/gen-src</source>
-                            </sources>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -6,7 +6,7 @@ import gnu.inet.http.Response;
 import java.io.IOException;
 import java.net.URI;
 
-import net.sf.yaxv.Resources;
+import net.sf.yaxv.Messages;
 
 public class HttpLinkValidator implements LinkValidator {
     public LinkValidationEvent[] validate(URI uri) throws IOException {
@@ -27,11 +27,11 @@ public class HttpLinkValidator implements LinkValidator {
                 if (code == 200) {
                     return null;
                 } else if (code == 404) {
-                    return new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_HTTP_BROKEN_LINK, new String[] { uri.toString(), String.valueOf(code) } ) };
+                    return new LinkValidationEvent[] { new LinkValidationEvent(Messages.LINK_HTTP_BROKEN_LINK, new String[] { uri.toString(), String.valueOf(code) } ) };
                 } else if (code == 302) {
                     uri = uri.resolve(response.getHeader("Location"));
                 } else {
-                    return new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_HTTP_UNRECOGNIZED_RESPONSE_CODE, new String[] { uri.toString(), String.valueOf(code) } ) };
+                    return new LinkValidationEvent[] { new LinkValidationEvent(Messages.LINK_HTTP_UNRECOGNIZED_RESPONSE_CODE, new String[] { uri.toString(), String.valueOf(code) } ) };
                 }
             }
             finally {

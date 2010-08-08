@@ -15,7 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.yaxv.Resources;
+import net.sf.yaxv.Messages;
 
 public class LinkValidationEngine {
     private static class Target {
@@ -49,10 +49,10 @@ public class LinkValidationEngine {
                 events = validator.validate(uri);
             }
             catch (UnknownHostException ex) {
-                events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_UNKNOWN_HOST, new String[] { uri.toString() }) };
+                events = new LinkValidationEvent[] { new LinkValidationEvent(Messages.LINK_UNKNOWN_HOST, new String[] { uri.toString() }) };
             }
             catch (IOException ex) {
-                events = new LinkValidationEvent[] { new LinkValidationEvent(Resources.LINK_BROKEN_LINK, new String[] { uri.toString(), ex.getMessage() }) };
+                events = new LinkValidationEvent[] { new LinkValidationEvent(Messages.LINK_BROKEN_LINK, new String[] { uri.toString(), ex.getMessage() }) };
             }
             synchronized (this) {
                 this.events = events;
@@ -232,7 +232,7 @@ public class LinkValidationEngine {
                     incoming.notify();
                 }
             } else {
-                listener.event(Resources.LINK_UNSUPPORTED_SCHEME, new Object[] { scheme });
+                listener.event(Messages.LINK_UNSUPPORTED_SCHEME, new Object[] { scheme });
             }
         }
         if (target != null) {

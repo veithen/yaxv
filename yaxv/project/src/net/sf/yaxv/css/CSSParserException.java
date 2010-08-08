@@ -1,6 +1,6 @@
 package net.sf.yaxv.css;
 
-import net.sf.yaxv.Resources;
+import net.sf.yaxv.Messages;
 
 public class CSSParserException extends Exception {
     private final int line;
@@ -8,7 +8,7 @@ public class CSSParserException extends Exception {
     private final String key;
     
     public CSSParserException(int line, int column, String key) {
-        super(Resources.MESSAGES.getString(key));
+        super(Messages.BUNDLE.getString(key));
         this.line = line;
         this.column = column;
         this.key = key;

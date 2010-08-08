@@ -14,7 +14,7 @@ public class TaskEventListener {
     }
     
     public void event(String fileName, int line, int column, String key, Object[] args) {
-        task.log(fileName + ":" + line + ":" + column + " " + MessageFormat.format(Resources.MESSAGES.getString(key), args) + " (" + key + ")");
+        task.log(fileName + ":" + line + ":" + column + " " + MessageFormat.format(Messages.BUNDLE.getString(key), args) + " (" + key + ")");
     }
     
     public void event(URI uri, int line, int column, String key, Object[] args) {
