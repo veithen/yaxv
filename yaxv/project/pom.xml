@@ -50,13 +50,6 @@
         </repository>
     </repositories>
     <build>
-        <sourceDirectory>src</sourceDirectory>
-        <resources>
-            <resource>
-                <directory>resources</directory>
-            </resource>
-        </resources>
-        <testSourceDirectory>test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>${project.groupId}</groupId>
