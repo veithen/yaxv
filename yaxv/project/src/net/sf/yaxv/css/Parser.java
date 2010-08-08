@@ -38,284 +38,284 @@ import net.sf.yaxv.css.token.Space;
 import net.sf.yaxv.css.token.StringToken;
 
 public class Parser {
-	private static class ParserState {
-		private final TokenConsumer in;
-		private final ParserEventListener listener;
-		
-		public ParserState(TokenConsumer in, ParserEventListener listener) {
-			this.in = in;
-			this.listener = listener;
-		}
-		
-		private void event(int level, Token token, String key) throws CSSParserException {
-			int line = token.getLineNumber();
-			int column = token.getColumnNumber();
-			if (listener.event(level, line, column, key) == ParserEventListener.ACTION_STOP || level == ParserEventListener.LEVEL_FATAL_ERROR) {
-				throw new CSSParserException(line, column, key);
-			}
-		}
+    private static class ParserState {
+        private final TokenConsumer in;
+        private final ParserEventListener listener;
+        
+        public ParserState(TokenConsumer in, ParserEventListener listener) {
+            this.in = in;
+            this.listener = listener;
+        }
+        
+        private void event(int level, Token token, String key) throws CSSParserException {
+            int line = token.getLineNumber();
+            int column = token.getColumnNumber();
+            if (listener.event(level, line, column, key) == ParserEventListener.ACTION_STOP || level == ParserEventListener.LEVEL_FATAL_ERROR) {
+                throw new CSSParserException(line, column, key);
+            }
+        }
 
-		private void event(Token token, String key) throws CSSParserException {
-			event(ParserEventListener.LEVEL_EVENT, token, key);
-		}
+        private void event(Token token, String key) throws CSSParserException {
+            event(ParserEventListener.LEVEL_EVENT, token, key);
+        }
 
-		private void error(Token token, String key) throws CSSParserException {
-			event(ParserEventListener.LEVEL_ERROR, token, key);
-		}
+        private void error(Token token, String key) throws CSSParserException {
+            event(ParserEventListener.LEVEL_ERROR, token, key);
+        }
 
-		private void fatalError(Token token, String key) throws CSSParserException {
-			event(ParserEventListener.LEVEL_FATAL_ERROR, token, key);
-		}
+        private void fatalError(Token token, String key) throws CSSParserException {
+            event(ParserEventListener.LEVEL_FATAL_ERROR, token, key);
+        }
 
-		private String getUnexpectedTokenKey(Class tokenClass) {
-			String name = tokenClass.getName();
-			return "css.unexpected." + name.substring(name.lastIndexOf('.')+1).toLowerCase();
-		}
+        private String getUnexpectedTokenKey(Class tokenClass) {
+            String name = tokenClass.getName();
+            return "css.unexpected." + name.substring(name.lastIndexOf('.')+1).toLowerCase();
+        }
 
-		private void fatalUnexpectedToken(Token token) throws CSSParserException {
-			fatalError(token, getUnexpectedTokenKey(token.getClass()));
-		}
+        private void fatalUnexpectedToken(Token token) throws CSSParserException {
+            fatalError(token, getUnexpectedTokenKey(token.getClass()));
+        }
 
-		public Stylesheet parseStylesheet() throws IOException, CSSParserException {
-			Token nextToken = in.nextToken();
-			if (nextToken instanceof AtKeyword && ((AtKeyword)nextToken).getName().equalsIgnoreCase("charset")) {
-				in.consume();
-				consumeSpace();
-				String charset = expectString();
-				consumeSpace();
-				expectToken(Semicolon.class);
-				// TODO: set charset in StreamConsumer
-			}
-			consumeSpaceAndCD();
-			while (true) {
-				nextToken = in.nextToken();
-				if (nextToken instanceof AtKeyword && ((AtKeyword)nextToken).getName().equalsIgnoreCase("import")) {
-					parseImport();
-					consumeSpaceAndCD();
-				} else {
-					break;
-				}
-			}
-			List rulesets = new LinkedList();
-			while (true) {
-				nextToken = in.nextToken();
-				if (nextToken instanceof AtKeyword) {
-					String name = ((AtKeyword)nextToken).getName();
-					if (name.equalsIgnoreCase("media")) {
-						parseMedia();
-					} else if (name.equalsIgnoreCase("page")) {
-						parsePage();
-					} else if (name.equalsIgnoreCase("font-face")) {
-						parseFontFace();
-					} else {
-						throw new UnexpectedTokenException(nextToken);
-					}
-				} else if (nextToken instanceof EOF) {
-					break;
-				} else {
-					rulesets.add(parseRuleset());
-				}
-				consumeSpaceAndCD();
-			}
-			return new Stylesheet((Ruleset[])rulesets.toArray(new Ruleset[rulesets.size()]));
-		}
+        public Stylesheet parseStylesheet() throws IOException, CSSParserException {
+            Token nextToken = in.nextToken();
+            if (nextToken instanceof AtKeyword && ((AtKeyword)nextToken).getName().equalsIgnoreCase("charset")) {
+                in.consume();
+                consumeSpace();
+                String charset = expectString();
+                consumeSpace();
+                expectToken(Semicolon.class);
+                // TODO: set charset in StreamConsumer
+            }
+            consumeSpaceAndCD();
+            while (true) {
+                nextToken = in.nextToken();
+                if (nextToken instanceof AtKeyword && ((AtKeyword)nextToken).getName().equalsIgnoreCase("import")) {
+                    parseImport();
+                    consumeSpaceAndCD();
+                } else {
+                    break;
+                }
+            }
+            List rulesets = new LinkedList();
+            while (true) {
+                nextToken = in.nextToken();
+                if (nextToken instanceof AtKeyword) {
+                    String name = ((AtKeyword)nextToken).getName();
+                    if (name.equalsIgnoreCase("media")) {
+                        parseMedia();
+                    } else if (name.equalsIgnoreCase("page")) {
+                        parsePage();
+                    } else if (name.equalsIgnoreCase("font-face")) {
+                        parseFontFace();
+                    } else {
+                        throw new UnexpectedTokenException(nextToken);
+                    }
+                } else if (nextToken instanceof EOF) {
+                    break;
+                } else {
+                    rulesets.add(parseRuleset());
+                }
+                consumeSpaceAndCD();
+            }
+            return new Stylesheet((Ruleset[])rulesets.toArray(new Ruleset[rulesets.size()]));
+        }
 
-		private void parseImport() throws IOException, CSSParserException {
-			throw new UnsupportedOperationException();
-		}
+        private void parseImport() throws IOException, CSSParserException {
+            throw new UnsupportedOperationException();
+        }
 
-		private void parseMedia() throws IOException, CSSParserException {
-			throw new UnsupportedOperationException();
-		}
+        private void parseMedia() throws IOException, CSSParserException {
+            throw new UnsupportedOperationException();
+        }
 
-		private void parsePage() throws IOException, CSSParserException {
-			throw new UnsupportedOperationException();
-		}
+        private void parsePage() throws IOException, CSSParserException {
+            throw new UnsupportedOperationException();
+        }
 
-		private void parseFontFace() throws IOException, CSSParserException {
-			throw new UnsupportedOperationException();
-		}
+        private void parseFontFace() throws IOException, CSSParserException {
+            throw new UnsupportedOperationException();
+        }
 
-		private Ruleset parseRuleset() throws IOException, CSSParserException {
-			List selectors = new LinkedList();
-			selectors.add(parseSelector());
-			Token nextToken;
-			while ((nextToken = in.nextToken()) instanceof Comma) {
-				in.consume();
-				consumeSpace();
-				selectors.add(parseSelector());
-			}
-			expectToken(LBrace.class);
+        private Ruleset parseRuleset() throws IOException, CSSParserException {
+            List selectors = new LinkedList();
+            selectors.add(parseSelector());
+            Token nextToken;
+            while ((nextToken = in.nextToken()) instanceof Comma) {
+                in.consume();
+                consumeSpace();
+                selectors.add(parseSelector());
+            }
+            expectToken(LBrace.class);
 
-			ruleset: while (true) {
-				consumeSpace();
-				String property = expectIdentifier();
-				consumeSpace();
-				expectToken(Colon.class);
-				while (true) {
-					nextToken = in.nextToken();
-					if (nextToken instanceof RBrace) {
-						in.consume();
-						break ruleset;
-					} else if (nextToken instanceof Semicolon) {
-						in.consume();
-						break;
-					} else {
-						in.consume();
-					}
-				}
-				consumeSpace();
-				nextToken = in.nextToken();
-				if (nextToken instanceof RBrace) {
-					in.consume();
-					error(nextToken, Resources.CSS_RULESET_TERMINATED_BY_SEMICOLON);
-					break;
-				}
-			}
+            ruleset: while (true) {
+                consumeSpace();
+                String property = expectIdentifier();
+                consumeSpace();
+                expectToken(Colon.class);
+                while (true) {
+                    nextToken = in.nextToken();
+                    if (nextToken instanceof RBrace) {
+                        in.consume();
+                        break ruleset;
+                    } else if (nextToken instanceof Semicolon) {
+                        in.consume();
+                        break;
+                    } else {
+                        in.consume();
+                    }
+                }
+                consumeSpace();
+                nextToken = in.nextToken();
+                if (nextToken instanceof RBrace) {
+                    in.consume();
+                    error(nextToken, Resources.CSS_RULESET_TERMINATED_BY_SEMICOLON);
+                    break;
+                }
+            }
 
-			return new Ruleset((Selector[])selectors.toArray(new Selector[selectors.size()]));
-		}
+            return new Ruleset((Selector[])selectors.toArray(new Selector[selectors.size()]));
+        }
 
-		private Selector parseSelector() throws IOException, CSSParserException {
-			Selector selector = parseSimpleSelector();
-			if (selector == null) {
-				throw new UnexpectedTokenException(in.nextToken());
-			}
-			while (true) {
-				Token nextToken = in.nextToken();
-				int type;
-				if (nextToken instanceof Plus) {
-					type = 1;
-				} else if (nextToken instanceof ChildOf) {
-					type = 2;
-				} else {
-					type = 0;
-				}
-				if (type != 0) {
-					in.consume();
-					consumeSpace();
-				}
-				Selector selector2 = parseSimpleSelector();
-				if (selector2 == null) {
-					if (type == 0) {
-						return selector;
-					} else {
-						throw new UnexpectedTokenException(in.nextToken());
-					}
-				} else {
-					switch (type) {
-						case 0: selector = new DescendantSelector(selector, selector2); break;
-						case 1: selector = new AdjacentSelector(selector, selector2); break;
-						case 2: selector = new ChildSelector(selector, selector2); break;
-					}
-				}
-			}
-		}
+        private Selector parseSelector() throws IOException, CSSParserException {
+            Selector selector = parseSimpleSelector();
+            if (selector == null) {
+                throw new UnexpectedTokenException(in.nextToken());
+            }
+            while (true) {
+                Token nextToken = in.nextToken();
+                int type;
+                if (nextToken instanceof Plus) {
+                    type = 1;
+                } else if (nextToken instanceof ChildOf) {
+                    type = 2;
+                } else {
+                    type = 0;
+                }
+                if (type != 0) {
+                    in.consume();
+                    consumeSpace();
+                }
+                Selector selector2 = parseSimpleSelector();
+                if (selector2 == null) {
+                    if (type == 0) {
+                        return selector;
+                    } else {
+                        throw new UnexpectedTokenException(in.nextToken());
+                    }
+                } else {
+                    switch (type) {
+                        case 0: selector = new DescendantSelector(selector, selector2); break;
+                        case 1: selector = new AdjacentSelector(selector, selector2); break;
+                        case 2: selector = new ChildSelector(selector, selector2); break;
+                    }
+                }
+            }
+        }
 
-		private Selector parseSimpleSelector() throws IOException, CSSParserException {
-			BaseSelector baseSelector;
-			List components = new LinkedList();
-			Token nextToken = in.nextToken();
-			if (nextToken instanceof Identifier) {
-				in.consume();
-				baseSelector = new TypeSelector(((Identifier)nextToken).getName());
-			} else if (nextToken instanceof Asterisk) {
-				in.consume();
-				baseSelector = new UniversalSelector();
-			} else {
-				baseSelector = null;
-			}
-			while (true) {
-				nextToken = in.nextToken();
-				if (nextToken instanceof Hash) {
-					in.consume();
-					components.add(new IdSelector(((Hash)nextToken).getName()));
-				} else if (nextToken instanceof Dot) {
-					in.consume();
-					components.add(new ClassSelector(expectIdentifier()));
-				} else if (nextToken instanceof LBracket) {
-					// TODO: attribute selector
-					throw new UnsupportedOperationException();
-				} else if (nextToken instanceof Colon) {
-					in.consume();
-					nextToken = in.nextToken();
-					if (nextToken instanceof Identifier) {
-						in.consume();
-						components.add(new PseudoClassSelector(0)); // TODO: choose type from identifier
-					} else if (nextToken instanceof Function) {
-						throw new UnsupportedOperationException("Pseudo class selector with function");
-					} else {
-						throw new UnexpectedTokenException(nextToken);
-					}
-				} else {
-					break;
-				}
-			}
-			consumeSpace();
-			if (components.isEmpty()) {
-				return baseSelector == null ? null : baseSelector;
-			} else if (baseSelector == null && components.size() == 1) {
-				return (Selector)components.get(0);
-			} else {
-				return new SimpleSelector(baseSelector, (SimpleSelectorComponent[])components.toArray(new SimpleSelectorComponent[components.size()]));
-			}
-		}
+        private Selector parseSimpleSelector() throws IOException, CSSParserException {
+            BaseSelector baseSelector;
+            List components = new LinkedList();
+            Token nextToken = in.nextToken();
+            if (nextToken instanceof Identifier) {
+                in.consume();
+                baseSelector = new TypeSelector(((Identifier)nextToken).getName());
+            } else if (nextToken instanceof Asterisk) {
+                in.consume();
+                baseSelector = new UniversalSelector();
+            } else {
+                baseSelector = null;
+            }
+            while (true) {
+                nextToken = in.nextToken();
+                if (nextToken instanceof Hash) {
+                    in.consume();
+                    components.add(new IdSelector(((Hash)nextToken).getName()));
+                } else if (nextToken instanceof Dot) {
+                    in.consume();
+                    components.add(new ClassSelector(expectIdentifier()));
+                } else if (nextToken instanceof LBracket) {
+                    // TODO: attribute selector
+                    throw new UnsupportedOperationException();
+                } else if (nextToken instanceof Colon) {
+                    in.consume();
+                    nextToken = in.nextToken();
+                    if (nextToken instanceof Identifier) {
+                        in.consume();
+                        components.add(new PseudoClassSelector(0)); // TODO: choose type from identifier
+                    } else if (nextToken instanceof Function) {
+                        throw new UnsupportedOperationException("Pseudo class selector with function");
+                    } else {
+                        throw new UnexpectedTokenException(nextToken);
+                    }
+                } else {
+                    break;
+                }
+            }
+            consumeSpace();
+            if (components.isEmpty()) {
+                return baseSelector == null ? null : baseSelector;
+            } else if (baseSelector == null && components.size() == 1) {
+                return (Selector)components.get(0);
+            } else {
+                return new SimpleSelector(baseSelector, (SimpleSelectorComponent[])components.toArray(new SimpleSelectorComponent[components.size()]));
+            }
+        }
 
-		private void consumeSpace() throws IOException, CSSParserException {
-			while (in.nextToken() instanceof Space) {
-				in.consume();
-			}
-		}
+        private void consumeSpace() throws IOException, CSSParserException {
+            while (in.nextToken() instanceof Space) {
+                in.consume();
+            }
+        }
 
-		private void consumeSpaceAndCD() throws IOException, CSSParserException {
-			while (true) {
-				Token nextToken = in.nextToken();
-				if (nextToken instanceof Space || nextToken instanceof CDO || nextToken instanceof CDC) {
-					in.consume();
-				} else {
-					return;
-				}
-			}
-		}
+        private void consumeSpaceAndCD() throws IOException, CSSParserException {
+            while (true) {
+                Token nextToken = in.nextToken();
+                if (nextToken instanceof Space || nextToken instanceof CDO || nextToken instanceof CDC) {
+                    in.consume();
+                } else {
+                    return;
+                }
+            }
+        }
 
-		private String expectString() throws IOException, CSSParserException {
-			Token nextToken = in.nextToken();
-			if (nextToken instanceof StringToken) {
-				in.consume();
-				return ((StringToken)nextToken).getContent();
-			} else {
-				throw new UnexpectedTokenException(nextToken);
-			}
-		}
+        private String expectString() throws IOException, CSSParserException {
+            Token nextToken = in.nextToken();
+            if (nextToken instanceof StringToken) {
+                in.consume();
+                return ((StringToken)nextToken).getContent();
+            } else {
+                throw new UnexpectedTokenException(nextToken);
+            }
+        }
 
-		private String expectIdentifier() throws IOException, CSSParserException {
-			Token nextToken = in.nextToken();
-			if (nextToken instanceof Identifier) {
-				in.consume();
-				return ((Identifier)nextToken).getName();
-			} else {
-				throw new UnexpectedTokenException(nextToken);
-			}
-		}
+        private String expectIdentifier() throws IOException, CSSParserException {
+            Token nextToken = in.nextToken();
+            if (nextToken instanceof Identifier) {
+                in.consume();
+                return ((Identifier)nextToken).getName();
+            } else {
+                throw new UnexpectedTokenException(nextToken);
+            }
+        }
 
-		private void expectToken(Class tokenClass) throws IOException, CSSParserException {
-			Token nextToken = in.nextToken();
-			if (tokenClass.isInstance(nextToken)) {
-				in.consume();
-			} else {
-				throw new UnexpectedTokenException(nextToken);
-			}
-		}
-	}
-	
-	private final static ParserEventListener DEFAULT_LISTENER = new DefaultParserEventListener(); // TODO: never used
+        private void expectToken(Class tokenClass) throws IOException, CSSParserException {
+            Token nextToken = in.nextToken();
+            if (tokenClass.isInstance(nextToken)) {
+                in.consume();
+            } else {
+                throw new UnexpectedTokenException(nextToken);
+            }
+        }
+    }
+    
+    private final static ParserEventListener DEFAULT_LISTENER = new DefaultParserEventListener(); // TODO: never used
 
-	public Stylesheet parseStylesheet(InputStream in, ParserEventListener listener) throws IOException, CSSParserException {
-		// TODO: simply using InputStreamReader with the platform default charset is of course not correct...
-		return parseStylesheet(new TokenConsumer(new Lexer(new StreamConsumer(new InputStreamReader(in)))), listener);
-	}
-	
-	public Stylesheet parseStylesheet(TokenConsumer in, ParserEventListener listener) throws IOException, CSSParserException {
-		return new ParserState(in, listener).parseStylesheet();
-	}
+    public Stylesheet parseStylesheet(InputStream in, ParserEventListener listener) throws IOException, CSSParserException {
+        // TODO: simply using InputStreamReader with the platform default charset is of course not correct...
+        return parseStylesheet(new TokenConsumer(new Lexer(new StreamConsumer(new InputStreamReader(in)))), listener);
+    }
+    
+    public Stylesheet parseStylesheet(TokenConsumer in, ParserEventListener listener) throws IOException, CSSParserException {
+        return new ParserState(in, listener).parseStylesheet();
+    }
 }
