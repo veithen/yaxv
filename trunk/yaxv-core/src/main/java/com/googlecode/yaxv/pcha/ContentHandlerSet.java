@@ -49,12 +49,12 @@ public class ContentHandlerSet implements ContentHandler {
             this.hs = hs;
         }
 
-        public PluggableContentHandler getContentHandler(Class contentHandlerClass) throws SAXException {
+        public <T extends PluggableContentHandler> T getContentHandler(Class<T> contentHandlerClass) throws SAXException {
             for (int i=0; i<hs.length; i++) {
                 PluggableContentHandler pch = hs[i].getContentHandler();
                 if (contentHandlerClass.isInstance(pch)) {
                     hs[i].dispatch(event, this);
-                    return pch;
+                    return contentHandlerClass.cast(pch);
                 }
             }
             throw new Error(); // TODO

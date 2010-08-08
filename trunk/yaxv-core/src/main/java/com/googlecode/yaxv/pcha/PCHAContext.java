@@ -4,6 +4,6 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 public interface PCHAContext {
-    PluggableContentHandler getContentHandler(Class contentHandlerClass) throws SAXException;
+    <T extends PluggableContentHandler> T getContentHandler(Class<T> contentHandlerClass) throws SAXException;
     Locator getLocator();
 }

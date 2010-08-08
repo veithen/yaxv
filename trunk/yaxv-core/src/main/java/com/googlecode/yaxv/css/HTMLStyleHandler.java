@@ -23,7 +23,7 @@ public class HTMLStyleHandler extends DefaultPluggableContentHandler {
     public void startElement(PCHAContext context, String uri, String localName, String qName, Attributes attributes) throws SAXException {
         if (localName.equals("link") && "stylesheet".equals(attributes.getValue("rel")) && "text/css".equals(attributes.getValue("type"))) {
             try {
-                URI stylesheetURI = ((URIResolver)context.getContentHandler(URIResolver.class)).resolveURI(attributes.getValue("href"));
+                URI stylesheetURI = context.getContentHandler(URIResolver.class).resolveURI(attributes.getValue("href"));
                 stylesheets.add(cache.loadStylesheet(stylesheetURI));
             }
             catch (Exception ex) {
@@ -31,7 +31,7 @@ public class HTMLStyleHandler extends DefaultPluggableContentHandler {
             }
         }
         
-        CSSContext cssContext = ((CSSContextTracker)context.getContentHandler(CSSContextTracker.class)).getContext();
+        CSSContext cssContext = context.getContentHandler(CSSContextTracker.class).getContext();
         List<Ruleset> rulesets = new LinkedList<Ruleset>();
         for (Stylesheet stylesheet : stylesheets) {
             rulesets.addAll(Arrays.asList(stylesheet.getRulesets(cssContext)));
